@@ -15,17 +15,27 @@
 <body>
   <canvas id="c" width="500" height="300"></canvas>
   <script charset="utf-8">
+    function getMousePos(canvas, evt) {
+      const rect = canvas.getBoundingClientRect();
+      return {
+        x: (evt.clientX - rect.left) / (rect.right - rect.left) * canvas.width,
+        y: (evt.clientY - rect.top) / (rect.bottom - rect.top) * canvas.height
+      }
+    }
+
     var el = document.getElementById('c');
     var ctx = el.getContext('2d');
     var isDrawing;
 
     el.onmousedown = function(e) {
       isDrawing = true;
-      ctx.moveTo(e.clientX, e.clientY);
+      const pos = getMousePos(el, e)
+      ctx.moveTo(pos.x, pos.y);
     };
     el.onmousemove = function(e) {
       if (isDrawing) {
-        ctx.lineTo(e.clientX, e.clientY);
+        const pos = getMousePos(el, e)
+        ctx.lineTo(pos.x, pos.y);
         ctx.stroke();
       }
     };

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <title>rxjs demo</title>
+  <style type="text/css" media="screen">
+    canvas {
+      border: 1px solid #ccc
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="c" width="500" height="300"></canvas>
+  <script src="https://unpkg.com/rxjs/bundles/rxjs.umd.js"></script>
+  <script charset="utf-8">
+    const { fromEvent } = rxjs;
+    const {
+      map,
+      takeUntil,
+      pairwise,
+      switchMap
+    } = rxjs.operators;
+
+    const target = document.querySelector('#c')
+    const rect = target.getBoundingClientRect();
+
+    const ctx = target.getContext('2d');
+    ctx.lineWidth = 3;
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = '#000';
+    const mouseDown$ = fromEvent(target, 'mousedown')
+    const mouseMove$ = fromEvent(target, 'mousemove')
+    const mouseUp$ = fromEvent(target, 'mouseup')
+
+    mouseDown$.pipe(
+      switchMap(e => {
+        return mouseMove$.pipe(
+          takeUntil(mouseUp$),
+          pairwise()
+        )
+      })
+    ).subscribe(([preEvt, curEvt]) => {
+      if (preEvt) {
+        ctx.beginPath();
+        const pre = {
+          x: preEvt.clientX - rect.left,
+          y: preEvt.clientY - rect.top
+        }
+        const cur = {
+          x: curEvt.clientX - rect.left,
+          y: curEvt.clientY - rect.top
+        }
+        ctx.moveTo(pre.x, pre.y)
+        ctx.lineTo(cur.x, cur.y)
+        ctx.stroke()
+      }
+    });
+  </script>
+</body>
+
+</html>
