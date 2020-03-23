@@ -7,3 +7,5 @@
 ## 目录
 
 1. [JavaScript 判断属性或者遍历属性](https://github.com/22earth/blog/issues/1)
+2. [Canvas 和 RxJS 画图二三事](https://github.com/22earth/blog/issues/2)
+3. [模板引擎的原理：实现一个简单的模板引擎](https://github.com/22earth/blog/issues/3)
