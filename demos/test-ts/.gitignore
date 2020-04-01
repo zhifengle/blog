@@ -1,0 +1,7 @@
+# Ignore build artifacts and other files.
+/dist
+.idea
+.vscode
+.DS_Store
+yarn.lock
+node_modules
