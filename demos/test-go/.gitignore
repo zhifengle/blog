@@ -1,0 +1,6 @@
+# Ignore build artifacts and other files.
+.idea
+.vscode
+.DS_Store
+yarn.lock
+node_modules
