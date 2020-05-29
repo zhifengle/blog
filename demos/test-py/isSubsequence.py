@@ -1,4 +1,4 @@
-def isSubsequence(s,t):
+def is_subsequence(s, t):
     if not len(s):
         return True
     ps = 0

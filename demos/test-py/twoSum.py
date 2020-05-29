@@ -1,4 +1,4 @@
-def twoSum(nums, target):
+def two_sum(nums, target):
     m = {}
     for i in range(0, len(nums)):
         num = nums[i]
@@ -7,4 +7,5 @@ def twoSum(nums, target):
         m[num] = i
     return [-1, -1]
 
-print(twoSum([2, 7, 11, 15], 9))
+
+print(two_sum([2, 7, 11, 15], 9))
