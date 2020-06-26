@@ -26,3 +26,13 @@ export function bind2(ctx: any, ...args: any) {
   _bind.prototype = new nop()
   return _bind
 }
+
+export function instance_of(l: any, r: any): boolean {
+  let o = r.prototype
+  let p = Object.getPrototypeOf(l)
+  while (true) {
+    if (!p) return false
+    if (o === p) return true
+    p = Object.getPrototypeOf(p)
+  }
+}
