@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <title>vue demo</title>
+</head>
+
+<body>
+  <div id="app"></div>
+  <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+  <script charset="utf-8">
+    var app = new Vue({
+      el: '#app',
+      data: {
+        test: 1
+      },
+      template: `<div class="app-inner">app  <childA v-bind:text="test"></childA></div>`,
+      created() {
+        // 父组件先被创建
+        console.log('app: created')
+      },
+      mounted() {
+        console.log('app: mounted')
+        setTimeout(() => {
+          this.test = 2;
+          // 2s 后  child 先 updated 然后是 app
+        }, 2000)
+      },
+      updated() {
+        // updated 不保证所以子组件被一起重绘
+        console.log('app: updated')
+      },
+      destoryed() {
+        console.log('app: destory')
+      },
+      components: {
+        'childA': {
+          props: ['text'],
+          template: `<div>childA: {{text}}</div>`,
+          created() {
+            console.log('child A: created')
+          },
+          mounted() {
+            console.log('child A: mounted')
+          },
+          updated() {
+            console.log('child A: updated')
+          },
+          destoryed() {
+            console.log('child A: destory')
+          },
+        }
+      },
+    })
+  </script>
+</body>
+
+</html>
