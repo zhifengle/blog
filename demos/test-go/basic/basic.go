@@ -1,14 +1,21 @@
 package basic
 
 import (
+	"crypto/md5"
+	"encoding/hex"
 	"fmt"
-	"reflect"
 )
 
+func md5V(str string) string {
+	h := md5.New()
+	h.Write([]byte(str))
+	return hex.EncodeToString(h.Sum(nil))
+}
+
 func init() {
-	author := "draven"
-	fmt.Println("TypeOf author:", reflect.TypeOf(author))
-	fmt.Println("ValueOf author:", reflect.ValueOf(author))
-	r := Rectangle{1, 2}
-	fmt.Println(r.area())
+	author := "文和"
+	for i := 0; i < 1e8; i++  {
+		author = md5V(author)
+	}
+	fmt.Println(author)
 }

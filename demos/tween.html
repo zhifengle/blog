@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>Tween.js / simplest possible example!</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	</head>
+	<body>
+
+    <script crossorigin="anonymous" integrity="sha384-hZqSCqXsL6fWy0qwuYZkIHTNxCnzjrpzWwN8fpIzo0/TMvt2D0nCp1XW1TbnGlww" src="https://lib.baomitu.com/tween.js/18.6.0/tween.umd.min.js"></script>
+		<script>
+			init()
+			animate()
+
+			function init() {
+				var output = document.createElement('div')
+				output.style.cssText = 'position: absolute; left: 50px; top: 300px; font-size: 100px'
+				document.body.appendChild(output)
+
+				var tween = new TWEEN.Tween({x: 50, y: 0})
+					.to({x: 400}, 2000)
+					.easing(TWEEN.Easing.Elastic.InOut)
+					.onUpdate(function (obj) {
+						output.innerHTML = 'x == ' + Math.round(obj.x)
+						var transform = 'translateX(' + obj.x + 'px)'
+						output.style.webkitTransform = transform
+						output.style.transform = transform
+					})
+					.start()
+			}
+
+			function animate(time) {
+				requestAnimationFrame(animate)
+				TWEEN.update(time)
+			}
+		</script>
+	</body>
+</html>
