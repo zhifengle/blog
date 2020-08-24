@@ -11,3 +11,7 @@ export function genRandomStr(len: number): string {
 export function randomNum(max: number, min: number): number {
   return Math.floor(Math.random() * (max - min + 1)) + min
 }
+
+export const convertNumberToBinary = (num: number) => {
+  return (num >>> 0).toString(2)
+}

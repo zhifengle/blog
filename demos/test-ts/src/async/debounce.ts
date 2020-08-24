@@ -7,7 +7,7 @@ export function debounce(fn: Func, wait: number): Func {
     clearTimeout(timer)
     timer = setTimeout(function () {
       fn.apply(ctx, args)
-    })
+    }, wait)
   }
 }
 
