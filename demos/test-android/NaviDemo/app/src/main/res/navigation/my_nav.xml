@@ -22,5 +22,9 @@
         <action
                 android:id="@+id/action_detailFragment_to_homeFragment"
                 app:destination="@id/homeFragment" />
+        <argument
+                android:name="name"
+                app:argType="string"
+                android:defaultValue="Jack" />
     </fragment>
 </navigation>

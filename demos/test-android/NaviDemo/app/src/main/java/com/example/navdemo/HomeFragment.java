@@ -1,6 +1,9 @@
 package com.example.navdemo;
 
 import android.os.Bundle;
+import android.text.TextUtils;
+import android.widget.EditText;
+import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import android.view.LayoutInflater;
@@ -69,8 +72,17 @@ public class HomeFragment extends Fragment {
         getView().findViewById(R.id.btn).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                EditText editText = getView().findViewById(R.id.editText);
+                String string = editText.getText().toString();
+                if (TextUtils.isEmpty(string)) {
+                    Toast.makeText(getActivity(), "please input", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                Bundle bundle = new Bundle();
+                bundle.putString("my_name", string);
                 NavController controller = Navigation.findNavController(view);
-                controller.navigate(R.id.detailFragment);
+                controller.navigate(R.id.action_homeFragment_to_detailFragment, bundle);
+//                controller.navigate(R.id.detailFragment);
             }
         });
     }
