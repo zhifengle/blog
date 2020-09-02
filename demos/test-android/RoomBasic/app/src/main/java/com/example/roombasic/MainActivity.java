@@ -1,43 +1,36 @@
 package com.example.roombasic;
 
+import android.os.Bundle;
 import android.view.View;
-import android.widget.Button;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
-import android.os.Bundle;
-import androidx.lifecycle.LiveData;
 import androidx.lifecycle.Observer;
-import androidx.lifecycle.ViewModel;
 import androidx.lifecycle.ViewModelProvider;
-import androidx.room.Room;
-import androidx.room.util.StringUtil;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
-    TextView textView;
-    Button btnInsert, btnClear;
     UserViewModel userViewModel;
+    RecyclerView recyclerView;
+    MyAdapter myAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        textView = findViewById(R.id.textView);
+        recyclerView = findViewById(R.id.recyclerView);
+        myAdapter = new MyAdapter();
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        recyclerView.setAdapter(myAdapter);
         userViewModel = new ViewModelProvider(this).get(UserViewModel.class);
         userViewModel.getAllUserLive().observe(this, new Observer<List<User>>() {
             @Override
             public void onChanged(List<User> users) {
-                StringBuilder text = new StringBuilder();
-                for (int i = 0; i < users.size(); i++) {
-                    User user = users.get(i);
-                    text.append(user.uid)
-                            .append(":").append(user.firstName)
-                            .append("=").append(user.lastName)
-                            .append("\n");
-                }
-                textView.setText(text);
+                myAdapter.setAllUsers(users);
+                myAdapter.notifyDataSetChanged();
             }
         });
         findViewById(R.id.buttonInsert).setOnClickListener(new View.OnClickListener() {
