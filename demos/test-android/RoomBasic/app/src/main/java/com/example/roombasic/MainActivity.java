@@ -10,7 +10,9 @@ import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModel;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.room.Room;
+import androidx.room.util.StringUtil;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
@@ -41,13 +43,29 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.buttonInsert).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                User user1 = new User();
-                user1.firstName = "Jack";
-                user1.lastName = "Lee";
-                User user2 = new User();
-                user2.firstName = "Alan";
-                user2.lastName = "Wood";
-                userViewModel.insertUsers(user1, user2);
+                String[] words = {
+                        "Called",
+                        "with",
+                        "the",
+                        "data",
+                        "in",
+                        "the",
+                        "database",
+                        "to",
+                        "decide",
+                        "whether",
+                        "to",
+                        "fetch"
+
+                };
+                List<User> users = new ArrayList<>();
+                for (String w: words) {
+                    User user1 = new User();
+                    user1.firstName = w;
+                    user1.lastName = new StringBuilder(w).reverse().toString();
+                    users.add(user1);
+                }
+                userViewModel.insertUsers(users.toArray(new User[0]));
             }
         });
         findViewById(R.id.buttonDelete).setOnClickListener(new View.OnClickListener() {
