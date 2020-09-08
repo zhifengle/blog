@@ -17,7 +17,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.13" />
+            app:layout_constraintVertical_bias="0.1" />
 
     <EditText
             android:id="@+id/editTextEnglish"
@@ -32,30 +32,30 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.237" />
+            app:layout_constraintVertical_bias="0.2" />
 
     <EditText
             android:id="@+id/editTextChinese"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="33dp"
             android:ems="10"
             android:hint="Chinese"
             android:inputType="textPersonName"
-            app:layout_constraintBottom_toTopOf="@+id/buttonSubmit"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="@+id/editTextEnglish"
             app:layout_constraintStart_toStartOf="@+id/editTextEnglish"
-            app:layout_constraintTop_toBottomOf="@+id/editTextEnglish"
-            app:layout_constraintVertical_bias="0.162" />
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.3" />
 
     <Button
             android:id="@+id/buttonSubmit"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="420dp"
             android:text="ADD"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="@+id/editTextChinese"
-            app:layout_constraintStart_toStartOf="@+id/editTextChinese" />
+            app:layout_constraintStart_toStartOf="@+id/editTextChinese"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.4" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

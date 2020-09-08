@@ -1,15 +1,17 @@
 package com.example.words;
 
 import android.os.Bundle;
-import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.List;
 
@@ -17,6 +19,7 @@ public class WordsFragment extends Fragment {
     private WordViewModel wordViewModel;
     private MyAdapter myAdapter1,myAdapter2;
     private RecyclerView recyclerView;
+    private FloatingActionButton floatingActionButton;
 
 
     public WordsFragment() {
@@ -47,6 +50,14 @@ public class WordsFragment extends Fragment {
                     myAdapter1.notifyDataSetChanged();
                     myAdapter2.notifyDataSetChanged();
                 }
+            }
+        });
+
+        floatingActionButton = requireActivity().findViewById(R.id.floatingActionButton);
+        floatingActionButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Navigation.findNavController(view).navigate(R.id.action_wordsFragment_to_addFragment);
             }
         });
     }
