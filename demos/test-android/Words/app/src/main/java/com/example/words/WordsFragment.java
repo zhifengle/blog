@@ -39,6 +39,7 @@ public class WordsFragment extends Fragment {
         recyclerView.setLayoutManager(new LinearLayoutManager(requireActivity()));
         myAdapter1 = new MyAdapter(false, wordViewModel);
         myAdapter2 = new MyAdapter(true, wordViewModel);
+        recyclerView.setAdapter(myAdapter1);
 
         wordViewModel.getAllWordsLive().observe(requireActivity(), new Observer<List<Word>>() {
             @Override
