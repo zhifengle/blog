@@ -27,4 +27,7 @@ public interface WordDao {
         //List<Word> getAllWords();
     LiveData<List<Word>> getAllWordsLive();
 
+    @Query("SELECT * FROM WORD WHERE english_word LIKE :pattern ORDER BY id DESC")
+    LiveData<List<Word>> findWordsWithPattern(String pattern);
+
 }
