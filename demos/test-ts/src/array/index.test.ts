@@ -1,3 +1,4 @@
+import { flatten } from '.'
 import { uniqueByKey } from './unique'
 
 describe('test array utils', () => {
@@ -17,5 +18,8 @@ describe('test array utils', () => {
         'value'
       )
     ).toEqual([{ name: 'ok', value: 123 }])
+  })
+  test('flatten', () => {
+    expect(flatten([1, [2, 3, [4]]])).toEqual([1, 2, 3, 4])
   })
 })
