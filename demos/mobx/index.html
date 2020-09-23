@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <title>mobx</title>
+</head>
+<style type="text/css" media="screen">
+</style>
+
+<body>
+  <script src="https://unpkg.com/mobx/lib/mobx.umd.js"></script>
+  <script charset="utf-8">
+    var numbers = mobx.observable([1, 2, 3]);
+    var sum = mobx.computed(() => numbers.reduce((a, b) => a + b, 0));
+
+    var disposer = mobx.autorun(() => console.log(sum.get()));
+    // 输出 '6'
+    numbers.push(4);
+    // 输出 '10'
+
+    disposer();
+    numbers.push(5);
+  </script>
+</body>
+
+</html>
