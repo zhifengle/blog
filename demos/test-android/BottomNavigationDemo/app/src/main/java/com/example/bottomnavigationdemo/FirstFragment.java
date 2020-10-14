@@ -32,7 +32,8 @@ public class FirstFragment extends Fragment {
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        mViewModel = ViewModelProviders.of(this).get(FirstViewModel.class);
+        mViewModel = new ViewModelProvider(this).get(FirstViewModel.class);
+
         // TODO: Use the ViewModel
         imageView.setRotation(mViewModel.rotationPosition);
         final ObjectAnimator objectAnimator = ObjectAnimator.ofFloat(imageView, "rotation", 0, 0);
