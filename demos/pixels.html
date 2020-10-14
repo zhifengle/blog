@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <title>pixels</title>
+  <style type="text/css" media="screen">
+    /* https://stackoverflow.com/questions/4308989/are-the-decimal-places-in-a-css-width-respected */
+    #percentage {
+      width: 200px;
+      color: white;
+    }
+
+    #percentage .first {
+      width: 50%;
+      height: 20px;
+      background-color: red;
+    }
+
+    #percentage .second {
+      width: 50.5%;
+      height: 20px;
+      background-color: green;
+    }
+
+    #percentage .third {
+      width: 51%;
+      height: 20px;
+      background-color: blue;
+    }
+
+    #pixels,
+    #pixels-same {
+      color: white;
+    }
+
+    #pixels .first {
+      width: 50px;
+      height: 20px;
+      background-color: red;
+    }
+
+    #pixels .second {
+      width: 50.5px;
+      height: 20px;
+      background-color: green;
+    }
+
+    #pixels .third {
+      width: 50.6px;
+      height: 20px;
+      background-color: blue;
+    }
+
+    #pixels .fourth {
+      width: 51px;
+      height: 20px;
+      background-color: red;
+    }
+
+    #pixels-same .first {
+      width: 50px;
+      height: 20px;
+      background-color: red;
+    }
+
+    #pixels-same .second {
+      width: 50px;
+      height: 20px;
+      background-color: green;
+    }
+
+    #pixels-same .third {
+      width: 50px;
+      height: 20px;
+      background-color: blue;
+    }
+
+    #pixels-same .fourth {
+      width: 51px;
+      height: 20px;
+      background-color: red;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="percentage">
+    <div class="first">50%=100px</div>
+    <div class="second">50.5%=101px</div>
+    <div class="third">51%=102px</div>
+  </div>
+  <br />
+  <div id="pixels">
+    <div class="first">50px</div>
+    <div class="second">50.5px</div>
+    <div class="third">50.6px</div>
+    <div class="fourth">51px</div>
+  </div>
+  <div id="pixels-same">
+    <div class="first">50px</div>
+    <div class="second">50px</div>
+    <div class="third">50px</div>
+    <div class="fourth">51px</div>
+  </div>
+</body>
+
+</html>
