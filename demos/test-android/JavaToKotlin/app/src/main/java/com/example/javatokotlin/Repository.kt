@@ -1,30 +1,26 @@
 package com.example.javatokotlin
 
-import java.util.*
-import kotlin.collections.ArrayList
+val User.formattedName: String
+    get() {
+        return if (lastName != null) {
+            if (firstName != null) {
+                "$firstName $lastName"
+            } else {
+                lastName ?: "Unknown"
+            }
+        } else {
+            firstName ?: "Unknown"
+        }
+    }
 
 class Repository private constructor() {
-    private val users = mutableListOf<User>()
-    fun getUsers(): List<User?>? {
-        return users
-    }
+    private val _users = mutableListOf<User>()
+    val users: List<User>
+        get() = _users
 
     val formattedUserNames: List<String>
         get() {
-            val userNames = ArrayList<String>(users.size)
-            for ((firstName, lastName) in users) {
-                var name = if (lastName != null) {
-                    if (firstName != null) {
-                        "$firstName $lastName"
-                    } else {
-                        lastName
-                    }
-                } else {
-                    firstName ?: "Unknown"
-                }
-                userNames.add(name)
-            }
-            return userNames
+            return _users.map { user -> user.formattedName}
         }
 
     companion object {
@@ -42,8 +38,10 @@ class Repository private constructor() {
         val user1 = User("Jane", "")
         val user2 = User("John", null)
         val user3 = User("Anne", "Doe")
-        users.add(user1)
-        users.add(user2)
-        users.add(user3)
+        _users.apply {
+            add(user1)
+            add(user2)
+            add(user3)
+        }
     }
 }
