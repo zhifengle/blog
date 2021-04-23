@@ -51,6 +51,22 @@ export function buildTree(
   }
   return myBuildTree(preorder, inorder, 0, n - 1, 0, n - 1);
 }
+// 递归法
+// Rust 可以使用这种方式
+// 使用一个 Data 结构体存储  p 和 d. 或者将 p ,d 当作参数进行递归调用
+export function buildTree4(preorder: number[], inorder: number[]) {
+  const p: IterableIterator<number> = preorder[Symbol.iterator]();
+  const d: Map<number, number> = new Map(inorder.map((v, k) => [v, k]));
+  const helper = (i: number, j: number): TreeNode<number> | null => {
+    if (i < j) {
+      const val = p.next().value,
+        idx = <number>d.get(val);
+      return new TreeNode(val, helper(i, idx), helper(idx + 1, j));
+    }
+    return null;
+  };
+  return helper(0, inorder.length);
+}
 
 // 迭代法
 export function buildTree2(

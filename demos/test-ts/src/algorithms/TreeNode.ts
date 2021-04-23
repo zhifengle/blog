@@ -8,9 +8,13 @@ export class TreeNode<T> implements TNode<T> {
   val: T;
   left: null | TreeNode<T>;
   right: null | TreeNode<T>;
-  constructor(val: T) {
+  constructor(
+    val: T,
+    left: TreeNode<T> | null = null,
+    right: TreeNode<T> | null = null
+  ) {
     this.val = val;
-    this.left = null;
-    this.right = null;
+    this.left = left;
+    this.right = right;
   }
 }

@@ -1,5 +1,5 @@
 import { TreeNode } from '../TreeNode';
-import { buildTree, buildTree2, buildTree3 } from './buildTree';
+import { buildTree, buildTree2, buildTree3, buildTree4 } from './buildTree';
 
 function isEqualTree<T>(tree1: TreeNode<T>, tree2: TreeNode<T>): boolean {
   if (tree1 && !tree2) return false;
@@ -30,5 +30,8 @@ test('build tree', () => {
   ).toEqual(true);
   expect(
     isEqualTree(buildTree3([3, 9, 20, 15, 7], [9, 3, 15, 20, 7]), originTree)
+  ).toEqual(true);
+  expect(
+    isEqualTree(buildTree4([3, 9, 20, 15, 7], [9, 3, 15, 20, 7]), originTree)
   ).toEqual(true);
 });
