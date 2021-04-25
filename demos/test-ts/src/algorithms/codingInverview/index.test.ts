@@ -1,6 +1,7 @@
 // 06
 import { INode } from '../links';
 import { replaceSpace, reversePrint } from '.';
+import { fib, fib2 } from './fib';
 
 test('reverse print', () => {
   let testHead: INode<number> = {
@@ -25,4 +26,9 @@ test('reverse print', () => {
 test('replace space', () => {
   const s = 'We are happy.';
   expect(replaceSpace(s)).toEqual('We%20are%20happy.');
+});
+
+test('fib', () => {
+  expect(fib(45)).toEqual(134903163);
+  expect(fib2(10)).toEqual(55);
 });
