@@ -36,3 +36,4 @@ gen/
 debug/
 *.exe
 *.out
+*.pdb
