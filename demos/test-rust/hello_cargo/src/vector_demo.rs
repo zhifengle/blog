@@ -1,5 +1,7 @@
+use std::collections::HashMap;
+
 #[allow(dead_code)]
-fn vector_demo() {
+pub fn vector_demo() {
     let v1 = vec![1, 2, 3];
     // v1 会被转让 ownership
     for v in v1 {
@@ -22,4 +24,10 @@ fn vector_demo() {
         vec![18, 21, 23, 26, 30],
     ];
     println!("matrix: {}", matrix[1][0]);
+
+    // Vec ----> Map
+    let inorder = vec![6, 5, 4, 3, 2, 1];
+    // inorder.iter().enumerate() 不会转移所有权
+    let mp: HashMap<i32, usize> = inorder.iter().enumerate().map(|(i, &j)| (j, i)).collect();
+    println!("mp: {:?}", mp);
 }

@@ -1,3 +1,5 @@
+#![allow(unused_imports)]
+#![allow(dead_code)]
 /// 06
 
 // Definition for singly-linked list.

@@ -1,3 +1,5 @@
+#![allow(unused_imports)]
+#![allow(dead_code)]
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -13,7 +15,7 @@ impl TreeNode {
         TreeNode {
             val,
             left: None,
-            right: Node,
+            right: None,
         }
     }
 }

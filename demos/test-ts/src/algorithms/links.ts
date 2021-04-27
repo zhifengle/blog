@@ -6,7 +6,7 @@ export interface INode<T> {
 export class ListNode<T> implements INode<T> {
   val: T;
   next: null | ListNode<T>;
-  constructor(val: T) {
+  constructor(val: T, next?: ListNode<T> | null) {
     this.val = val;
     this.next = null;
   }
