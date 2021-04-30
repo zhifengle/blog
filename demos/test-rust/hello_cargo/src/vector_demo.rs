@@ -30,4 +30,11 @@ pub fn vector_demo() {
     // inorder.iter().enumerate() 不会转移所有权
     let mp: HashMap<i32, usize> = inorder.iter().enumerate().map(|(i, &j)| (j, i)).collect();
     println!("mp: {:?}", mp);
+
+    // sort
+    let mut vec = vec![1.1, 1.15, 5.5, 1.123, 2.0];
+
+    vec.sort_by(|a, b| a.partial_cmp(b).unwrap());
+
+    assert_eq!(vec, vec![1.1, 1.123, 1.15, 2.0, 5.5]);
 }
