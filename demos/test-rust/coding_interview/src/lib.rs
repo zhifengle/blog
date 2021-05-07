@@ -1,5 +1,7 @@
 mod base_st;
 mod build_tree;
+mod ci011_min_array;
+mod ci012_has_path;
 mod duplication_in_array;
 mod find_number_in2_d_array;
 mod replace_space;
