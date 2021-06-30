@@ -3,6 +3,7 @@ mod deal_str;
 mod minigrep;
 mod misc_fn;
 mod sort;
+mod st_demo;
 mod vector_demo;
 
 fn main() {
