@@ -72,6 +72,18 @@ struct CodeService {
     sender: RefCell<Option<oneshot::Sender<String>>>,
 }
 
+pub async fn authorize(client_id: &str) {
+    let port: u32 = 8989;
+    let redirect = format!("http://localhost:{}/", port);
+    let auth_uri = format!(
+        "{}?client_id={}&response_type=code&redirect_uri={}",
+        "https://bgm.tv/oauth/authorize",
+        client_id,
+        redirect.clone()
+    );
+    println!("auth uri: {}", auth_uri);
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -89,5 +101,9 @@ mod tests {
         let deserialized: AuthInfo = serde_json::from_str(&serialized).unwrap();
 
         println!("deserialized = {:?}", deserialized);
+    }
+    #[test]
+    fn test_auth() {
+        // authorize("bgm191360de6815584eb");
     }
 }

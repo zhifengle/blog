@@ -1,8 +1,8 @@
 mod api_info;
 mod auth;
+mod constants;
 mod http;
 
-use crate::http::HttpClient;
 use std::{error::Error, process};
 
 fn main() {
@@ -13,7 +13,10 @@ fn main() {
 }
 
 fn run() -> Result<(), Box<dyn Error>> {
-    let client = HttpClient::new();
+    let client = http::HttpClient::new(http::HttpClientOpts {
+        ua: None,
+        proxy_url: None,
+    });
     let url = "https://bgm.tv/";
     let content = client.fetch_text(url)?;
     println!("{}", content);
