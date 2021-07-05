@@ -1,0 +1,11 @@
+# Ignore build artifacts and other files.
+/dist
+.idea
+.DS_Store
+yarn.lock
+extension/dist
+node_modules
+extension.crx
+extension.pem
+*-bk.test.ts
+web-ext-artifacts
