@@ -1,5 +1,6 @@
 mod closures;
 mod deal_str;
+mod enum_demo;
 mod minigrep;
 mod misc_fn;
 mod sort;
