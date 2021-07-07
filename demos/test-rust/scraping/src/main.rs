@@ -2,14 +2,24 @@ mod http;
 mod qiandao;
 
 use crate::http::{HttpClient, HttpClientOpts};
+use clap::App;
 use std::{error::Error, process};
 
 fn main() {
-    if let Err(e) = run() {
-        eprintln!("Application err: {}", e);
+    let matches = App::new("myapp")
+        .version("1.0")
+        .author("Kevin K. <kbknapp@gmail.com>")
+        .about("Does awesome things")
+        .arg("-c, --cookie=[FILE] 'Sets a cookie file'")
+        .get_matches();
+    let cookie_file = matches.value_of("cookie").unwrap();
+    println!("Value for config: {}", cookie_file);
 
-        process::exit(1);
-    }
+    // if let Err(e) = run() {
+    //     eprintln!("Application err: {}", e);
+
+    //     process::exit(1);
+    // }
 }
 
 #[tokio::main]
