@@ -9,6 +9,7 @@ pub struct Snake {
 
 impl Snake {
     pub fn new(start: Point, length: u16, direction: Direction) -> Self {
+        // 为什么要反向??
         let opposite = direction.opposite();
         let body = (0..length)
             .into_iter()
