@@ -35,12 +35,12 @@ export function loggerFactory(
     ],
   });
 
-  if (process.env.NODE_ENV !== 'production') {
-    logger.add(
-      new transports.Console({
-        format: format.simple(),
-      })
-    );
-  }
+  // if (process.env.NODE_ENV !== 'production') {
+  // }
+  logger.add(
+    new transports.Console({
+      format: format.simple(),
+    })
+  );
   return logger;
 }

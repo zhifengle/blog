@@ -235,8 +235,9 @@ const siteDict: SiteConfig[] = [
 ];
 async function main() {
   // @TODO 增加设置选项，用于当个网站签到或者全部签到
-  siteDict.forEach((obj) => {
-    obj.signFn();
-  });
+  for (let i = 0; i < siteDict.length; i++) {
+    const obj = siteDict[i];
+    await obj.signFn();
+  }
 }
 main();
