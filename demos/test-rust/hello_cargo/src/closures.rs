@@ -1,7 +1,9 @@
+#![allow(unused_imports)]
+#![allow(dead_code)]
+
 use std::thread;
 use std::time::Duration;
 
-#[allow(dead_code)]
 struct Cacher<T>
 where
     T: Fn(u32) -> u32,
@@ -35,7 +37,6 @@ where
     }
 }
 
-#[allow(dead_code)]
 fn generate_workout(intensity: u32, random_number: u32) {
     let mut expensive_result = Cacher::new(|num| {
         println!("calculation slowly...");
@@ -56,13 +57,29 @@ fn generate_workout(intensity: u32, random_number: u32) {
         }
     }
 }
-#[allow(dead_code)]
 pub fn t_closures_int() {
     let x = 4;
     let equal_to_x = |z| z == x;
     let y = 4;
 
     assert!(equal_to_x(y));
+}
+
+pub fn t_closures_vec() {
+    let haystack = vec![1, 2, 3];
+
+    let contains = move |needle| haystack.contains(needle);
+
+    println!("{}", contains(&1));
+    println!("{}", contains(&4));
+
+    let mut count = 0;
+    let mut inc = || {
+        count += 1;
+        println!("`count`: {}", count);
+    };
+    // let _reborrow = &count;
+    inc();
 }
 
 #[cfg(test)]
