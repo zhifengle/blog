@@ -2,18 +2,18 @@ use reqwest::header;
 use serde::{Deserialize, Serialize};
 use std::{error::Error as StdError, str::FromStr};
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone, Copy)]
 pub enum Method {
     Get,
     Post,
 }
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone, Copy)]
 pub enum PostType {
     Json,
     Form,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct Req {
     pub url: String,
     pub method: Method,

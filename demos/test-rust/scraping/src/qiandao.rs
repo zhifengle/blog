@@ -1,20 +1,23 @@
 use regex::Regex;
 use reqwest::Url;
-use serde_json::json;
-use std::error::Error as StdError;
+use serde_json::{json, Map};
+use std::{collections::HashMap, error::Error as StdError};
 
 use crate::http::{HttpClient, HttpClientOpts, Method, PostType, Req};
 
+#[derive(Clone)]
 struct PageReq {
     req: Req,
     auth_str: String,
     success_str: String,
     finish_str: String,
+    // 下一步操作的数据: url,  body
+    redirect_dict: Option<serde_json::Value>,
 }
 enum PageStatus {
     Success,
     Finish,
-    Redirect(String),
+    Redirect(Option<serde_json::Value>),
     Unauthorized,
     NotFound,
 }
@@ -33,6 +36,37 @@ fn gen_url(href: &str, pathname: &str) -> String {
     let url = Url::parse(href).unwrap();
     url.join(pathname).unwrap().to_string()
 }
+fn get_match_str(contents: &str, target_str: &str) -> Option<String> {
+    let re = Regex::new(target_str).unwrap();
+    if let Some(cap) = re.captures(contents) {
+        // 第二个捕获是目标值
+        return Some(cap.get(1).unwrap().as_str().to_string());
+    }
+    None
+}
+// 正则匹配数据，返回 json
+// body 数据为 object
+fn gen_redirect_data(contents: &str, dict: serde_json::Value) -> serde_json::Value {
+    let mut res = Map::new();
+    let mut body_map: HashMap<String, String> = HashMap::new();
+    for (key, dict_val) in dict.as_object().unwrap().iter() {
+        if key.eq("body") {
+            for (key, val) in dict_val.as_object().unwrap().iter() {
+                let m_str = get_match_str(contents, val.as_str().unwrap());
+                if let Some(t_str) = m_str {
+                    body_map.insert(key.clone(), t_str);
+                }
+            }
+            res.insert("body".to_string(), json!(body_map));
+        } else if let Some(target_str) = dict_val.as_str() {
+            println!("other: {} and str: {}", key, target_str);
+            if let Some(val) = get_match_str(contents, target_str) {
+                res.insert(key.clone(), json!(val));
+            }
+        }
+    }
+    json!(res)
+}
 async fn handle_req(client: &HttpClient, page: PageReq) -> PageStatus {
     let req = page.req;
     let content = client.fetch_info(req).await.unwrap();
@@ -43,7 +77,12 @@ async fn handle_req(client: &HttpClient, page: PageReq) -> PageStatus {
         // return Err(StdError::new());
         return PageStatus::Unauthorized;
     } else if success_re.is_match(&content) {
+        if let Some(dict) = page.redirect_dict {
+            return PageStatus::Redirect(Some(gen_redirect_data(&content, dict)));
+        }
+        return PageStatus::Redirect(None);
     } else if finish_re.is_match(&content) {
+        return PageStatus::Finish;
     }
     PageStatus::NotFound
 }
@@ -57,8 +96,48 @@ async fn sign(site: Site) -> Result<PageStatus, Box<dyn StdError>> {
         ua: None,
         proxy_url,
     });
-    for page in site.pages {
-        handle_req(&client, page).await;
+    let mut prev_payload: Option<serde_json::Value> = None;
+    for page in site.pages.clone().iter_mut() {
+        if let Some(val) = prev_payload.as_ref() {
+            if let Some(url_value) = val.get("url") {
+                page.req.url = url_value.as_str().unwrap().to_string();
+            }
+            if let Some(body_value) = val.get("body") {
+                let obj = body_value.as_object().unwrap();
+                match page.req.body.clone() {
+                    None => page.req.body = Some(json!(obj)),
+                    Some(body_val) => {
+                        let mut new_body = Map::new();
+                        for (key, origin_val) in body_val.as_object().unwrap().iter() {
+                            if let Some(target_val) = obj.get(key) {
+                                new_body.insert(key.clone(), target_val.clone());
+                            } else {
+                                new_body.insert(key.clone(), origin_val.clone());
+                            }
+                        }
+                        page.req.body = Some(json!(new_body));
+                    }
+                }
+            }
+        }
+        let status = handle_req(&client, page.clone()).await;
+        match status {
+            PageStatus::Success => {
+                //
+            }
+            PageStatus::Unauthorized => {
+                //
+            }
+            PageStatus::Finish => {
+                //
+            }
+            PageStatus::Redirect(payload) => {
+                prev_payload = payload;
+            }
+            PageStatus::NotFound => {
+                //
+            }
+        }
     }
     Ok(PageStatus::NotFound)
 }
@@ -81,6 +160,7 @@ async fn run() -> Result<(), Box<dyn StdError>> {
                 auth_str: "您好！登录后享受更多精彩".to_string(),
                 success_str: "选择你要进行的任务项目".to_string(),
                 finish_str: "您今天已经签到过了或者签到时间还未开始".to_string(),
+                redirect_dict: None,
             },
             PageReq {
                 req: Req {
@@ -99,6 +179,7 @@ async fn run() -> Result<(), Box<dyn StdError>> {
                 auth_str: "您好！登录后享受更多精彩".to_string(),
                 success_str: "恭喜你签到成功".to_string(),
                 finish_str: "xxx finish".to_string(),
+                redirect_dict: None,
             },
         ],
     };
@@ -142,24 +223,69 @@ mod tests {
     #[test]
     async fn test_req() {
         let south = Site {
-            name: String::from("south-plus"),
+            name: String::from("v2ex"),
             enable_proxy: true,
             pages: vec![PageReq {
                 req: Req {
-                    url: "https://www.south-plus.net/plugin.php?H_name-tasks.html".to_string(),
+                    url: "https://v2ex.com/mission/daily".to_string(),
                     method: Method::Get,
                     headers: Some(json!({
-                        "referer": "https://www.south-plus.net/",
+                        "referer": "https://v2ex.com/",
                         // @TODO cookie
                     })),
                     body: None,
                     post_type: None,
                 },
-                auth_str: "您还不是论坛会员,请先登录论坛".to_string(),
+                auth_str: "你是机器人么".to_string(),
                 success_str: "选择你要进行的任务项目".to_string(),
                 finish_str: "xxx finish".to_string(),
+                redirect_dict: Some(json!({
+                    "url": r"mission/daily/redeem?once=\d+"
+                })),
             }],
         };
         sign(south).await;
+    }
+    #[test]
+    fn test_regex() {
+        let contents = r#"
+        mission/daily/redeem?once=12312312
+        aa=123
+        bb=456
+        cc=xyz
+        "#;
+        let target_str = r"mission/daily/redeem\?once=\d+";
+        let re = Regex::new(target_str).unwrap();
+        assert_eq!(re.is_match(contents), true);
+    }
+    #[test]
+    fn test_gen_redirect_data() {
+        let contents = r#"
+        mission/daily/redeem?once=12312312
+        aa=123
+        bb=456
+        cc=xyz
+        "#;
+        let dict = json!({
+            "url": r"(mission/daily/redeem\?once=\d+)",
+            "body": {
+                "aa": "aa=(.+)",
+                "cc": "cc=(.+)",
+            }
+        });
+        let val = gen_redirect_data(contents, dict);
+        assert_eq!(
+            val,
+            json!({
+                "url": "mission/daily/redeem?once=12312312",
+                "body": {
+                    "aa": "123",
+                    "cc": "xyz"
+                }
+            })
+        );
+        let dict = json!({});
+        let val = gen_redirect_data(contents, dict);
+        assert_eq!(val, json!({}));
     }
 }
