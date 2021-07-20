@@ -1,4 +1,5 @@
 mod arithmetic;
+mod sedregex;
 
 use nom::{bytes::complete::tag, IResult};
 
