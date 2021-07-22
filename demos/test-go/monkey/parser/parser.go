@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"fmt"
 	"test_go/monkey/ast"
 	"test_go/monkey/lexer"
 	"test_go/monkey/token"
@@ -10,15 +11,26 @@ type Parser struct {
 	l         *lexer.Lexer
 	curToken  token.Token
 	peekToken token.Token
+	errors    []string
 }
 
 func New(l *lexer.Lexer) *Parser {
-	p := &Parser{l: l}
+	p := &Parser{l: l, errors: []string{}}
 
 	// 读取两次，保证 cur 和 peek
 	p.nextToken()
 	p.nextToken()
 	return p
+}
+
+func (p *Parser) Errors() []string {
+	return p.errors
+}
+
+func (p *Parser) peekError(t token.TokenType) {
+	msg := fmt.Sprintf("expected next token to be %s, got %s instead", t, p.peekToken.Type)
+
+	p.errors = append(p.errors, msg)
 }
 
 func (p *Parser) nextToken() {
@@ -56,6 +68,9 @@ func (p *Parser) parseLetStatement() *ast.LetStatement {
 		return nil
 	}
 	stmt.Name = &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
+	if !p.expectToken(token.ASSIGN) {
+		return nil
+	}
 
 	// TODO
 	for !p.curTokenIs(token.SEMICOLON) {
@@ -77,6 +92,7 @@ func (p *Parser) expectToken(t token.TokenType) bool {
 		p.nextToken()
 		return true
 	} else {
+		p.peekError(t)
 		return false
 	}
 }
