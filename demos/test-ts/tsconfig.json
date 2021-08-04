@@ -1,25 +1,24 @@
 {
   "compilerOptions": {
-    "outDir": "./dist",
-    "lib": [
-      "DOM",
-      "es2017",
-    ],
-    "noImplicitAny": true,
-    "target": "es6",
-    "allowJs": true,
-    //定义类型定义文件的根目录
-    "esModuleInterop": true,
-    // 引入 JSON
-    "resolveJsonModule": true,
     "module": "commonjs",
-    "sourceMap": true
+    "esModuleInterop": true,
+    "allowJs": true,
+    "allowSyntheticDefaultImports": true,
+    "skipLibCheck": true,
+    "target": "es2020",
+    "noImplicitAny": true,
+    "moduleResolution": "node",
+    "sourceMap": true,
+    "outDir": "dist",
+    "baseUrl": ".",
+    "paths": {
+      "*": [
+        "node_modules/*",
+        "src/types/*"
+      ]
+    }
   },
   "include": [
-    "src"
-  ],
-  "exclude": [
-    "./node_modules",
-    "./dist"
+    "src/**/*"
   ]
 }
