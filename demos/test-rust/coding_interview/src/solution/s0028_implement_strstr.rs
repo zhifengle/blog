@@ -5,49 +5,7 @@ pub struct Solution {}
 
 impl Solution {
     pub fn str_str(haystack: String, needle: String) -> i32 {
-        let mut i = 0;
-        let mut j: i32 = 0;
-        if needle.len() == 0 {
-            return 0;
-        }
-        let next = Self::get_next(&needle);
-        while i < haystack.len() && j < needle.len() as i32 {
-            if j == -1 || haystack.chars().nth(i) == needle.chars().nth(j as usize) {
-                i += 1;
-                j += 1;
-            } else {
-                j = next[j as usize];
-            }
-        }
-        if j == needle.len() as i32 {
-            return i as i32 - j;
-        }
-        -1
-    }
-    fn get_next(pattern: &str) -> Vec<i32> {
-        let mut i = 0;
-        let mut j = -1;
-        // let pattern: Vec<char> = pattern.chars().collect();
-        // 使用 array ??
-        // [0; 5]
-        let len = pattern.len();
-        // 边界
-        if len == 0 {
-            return vec![];
-        }
-        // 初始化为 0
-        let mut next: Vec<i32> = vec![0; len];
-        next[0] = -1;
-        while i < len - 1 {
-            if j == -1 || pattern.chars().nth(i) == pattern.chars().nth(j as usize) {
-                i += 1;
-                j += 1;
-                next[i] = j;
-            } else {
-                j = next[j as usize];
-            }
-        }
-        next
+        kmp_search(haystack, needle)
     }
 }
 
@@ -67,6 +25,44 @@ fn str2(haystack: String, needle: String) -> i32 {
         _ => -1,
     }
 }
+fn kmp_search(haystack: String, needle: String) -> i32 {
+    let m = haystack.len();
+    let n = needle.len();
+    if m < n {
+        return -1;
+    }
+    if n == 0 {
+        return 0;
+    }
+    let haystack = haystack.as_bytes();
+    let needle = needle.as_bytes();
+    let mut next = vec![0; n];
+    let mut j = 0;
+    for i in 1..n {
+        // 换成 if 也通过了
+        while j > 0 && needle[i] != needle[j] {
+            j = next[j - 1];
+        }
+        if needle[i] == needle[j] {
+            j += 1;
+        }
+        next[i] = j;
+    }
+    j = 0;
+    for i in 0..m {
+        // 换成 if 会超时
+        while j > 0 && haystack[i] != needle[j] {
+            j = next[j - 1];
+        }
+        if haystack[i] == needle[j] {
+            j += 1;
+        }
+        if j == n {
+            return (i - n + 1) as i32;
+        }
+    }
+    -1
+}
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -83,6 +79,6 @@ mod tests {
     }
     #[test]
     fn test_str2() {
-        assert_eq!(str2("hello".to_string(), "ll".to_string()), 2);
+        assert_eq!(kmp_search("hello".to_string(), "ll".to_string()), 2);
     }
 }

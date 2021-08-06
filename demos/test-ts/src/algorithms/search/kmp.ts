@@ -53,4 +53,39 @@ function getNext(pattern: string) {
 }
 
 // -1 0 0 1 2 3 4 0
-console.log(kmp('hello', 'll'));
+// console.log(kmp('hello', 'll'));
+
+function kmpSearch(text: string, pattern: string): number {
+  if (text.length < pattern.length) {
+    return -1;
+  }
+  if (pattern.length === 0) {
+    return 0;
+  }
+
+  const next = new Array(pattern.length);
+  for (let i = 1, j = 0; i < pattern.length; i++) {
+    while (j > 0 && pattern[i] != pattern[j]) {
+      j = next[j - 1];
+    }
+    if (pattern[i] == pattern[j]) {
+      j++;
+    }
+    next[i] = j;
+  }
+  console.log(next);
+  for (let i = 0, j = 0; i < text.length; i++) {
+    while (j > 0 && text[i] != pattern[j]) {
+      j = next[j - 1];
+    }
+    if (text[i] == pattern[j]) {
+      j++;
+    }
+    if (j == pattern.length) {
+      return i - pattern.length + 1;
+    }
+  }
+  return -1;
+}
+
+console.log(kmpSearch('hello', 'll'));
