@@ -69,7 +69,6 @@ mod tests {
 
     #[test]
     fn test_str() {
-        assert_eq!(str2("hello".to_string(), "ll".to_string()), 2);
         assert_eq!(Solution::str_str("hello".to_string(), "ll".to_string()), 2);
         assert_eq!(
             Solution::str_str("aaaaa".to_string(), "bba".to_string()),
