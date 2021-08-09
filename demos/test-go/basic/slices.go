@@ -15,6 +15,6 @@ func init() {
 	fmt.Printf("%T\n", s2)
 	modifySlice(s1)
 	modifySlice(s2)
-	fmt.Println("%#v", s1)
-	fmt.Println("%#v", s2)
+	//fmt.Println("%#v", s1)
+	//fmt.Println("%#v", s2)
 }
