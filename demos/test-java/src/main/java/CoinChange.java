@@ -7,7 +7,6 @@ class CoinChange {
         Solution solution = new Solution();
         int[] coins = {1, 2, 5};
 //        System.out.println(solution.coinChange(coins,11));
-        System.out.println(solution.lengthOfLongestSubstring("abcabcbb"));
         int[] arr = {4, 1, 8, 2};
         solution.bubbleSort(arr);
         System.out.println(Arrays.toString(arr));
@@ -32,36 +31,6 @@ class Solution {
             }
         }
         return dp[amount] == amount + 1 ? -1 : dp[amount];
-    }
-
-    public int lengthOfLongestSubstring(String s) {
-        int maxLen = 0;
-        int lastRepeatPos = -1;
-        Map<Character, Integer> m = new HashMap<>();
-        for (int i = 0; i < s.length(); i++) {
-            char c = s.charAt(i);
-            if (m.containsKey(c) && m.get(c) > lastRepeatPos) {
-                lastRepeatPos = m.get(c);
-            }
-            if (i - lastRepeatPos > maxLen) {
-                maxLen = i - lastRepeatPos;
-            }
-            m.put(c, i);
-        }
-        return maxLen;
-    }
-    public int lengthOfLongestSubstring2(String s) {
-        int left = 0, right = 0, count = 0;
-        Map<Character, Integer> m = new HashMap<>();
-        while (right < s.length()) {
-            char c = s.charAt(right);
-            if (m.containsKey(c)) {
-                left = Math.max(left, m.get(c) + 1);
-            }
-            count = Math.max(count, right - left +1);
-            m.put(c, right++);
-        }
-        return count;
     }
     public void bubbleSort(int[] arr) {
         for(int i = 0; i < arr.length - 1; i++) {
