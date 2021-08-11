@@ -6,7 +6,7 @@ func modifySlice(s []int) {
 	s[0] = 1
 }
 
-func init() {
+func sliceMain() {
 	fmt.Println("=== slice block ===")
 	s1 := []int{1, 1, 1}
 	s2 := make([]int, 3)

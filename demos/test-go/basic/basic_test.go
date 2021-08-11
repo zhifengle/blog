@@ -1,6 +1,8 @@
 package basic
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestJson(t *testing.T) {
 	OutputJson()
