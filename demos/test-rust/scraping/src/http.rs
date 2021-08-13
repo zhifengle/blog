@@ -4,12 +4,16 @@ use std::{error::Error as StdError, str::FromStr};
 
 #[derive(Serialize, Deserialize, Clone, Copy)]
 pub enum Method {
+    #[serde(rename(serialize = "get", deserialize = "get"))]
     Get,
+    #[serde(rename(serialize = "post", deserialize = "post"))]
     Post,
 }
 #[derive(Serialize, Deserialize, Clone, Copy)]
 pub enum PostType {
+    #[serde(rename(serialize = "json", deserialize = "json"))]
     Json,
+    #[serde(rename(serialize = "form", deserialize = "form"))]
     Form,
 }
 
@@ -118,5 +122,27 @@ impl HttpClient {
             .await?
             .json::<serde_json::Value>()
             .await?)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use serde_json::json;
+
+    use super::*;
+
+    #[test]
+    fn test_req() {
+        let req = Req {
+            url: "https://v2ex.com/mission/daily".to_string(),
+            method: Method::Get,
+            headers: Some(json!({
+                "referer": "https://v2ex.com/",
+                // @TODO cookie
+            })),
+            body: None,
+            post_type: None,
+        };
+        println!("{}", serde_json::to_string(&req).unwrap());
     }
 }

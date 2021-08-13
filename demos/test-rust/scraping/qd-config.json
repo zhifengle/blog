@@ -1,0 +1,22 @@
+{
+    "www.52pojie.cn": {
+        "headers": {
+            "Host": "www.52pojie.cn"
+        },
+        "reqs": [
+            {
+                "url": "https://www.52pojie.cn/home.php?mod=task&do=apply&id=2",
+                "method": "get",
+                "post_type": null,
+                "body": null,
+                "headers": null
+            }
+        ]
+    },
+    "v2ex.com": {
+        "headers": {
+            "Referer": "https://v2ex.com/",
+            "cookie": ""
+        }
+    }
+}
