@@ -2,6 +2,7 @@ use std::str::FromStr;
 
 use nom::{
     branch::alt,
+    bytes::complete::tag,
     character::complete::{char, digit1, space0},
     combinator::map_res,
     multi::fold_many0,
@@ -10,7 +11,7 @@ use nom::{
 };
 
 fn parens(i: &str) -> IResult<&str, i64> {
-    delimited(space0, expr, space0)(i)
+    delimited(space0, delimited(tag("("), expr, tag(")")), space0)(i)
 }
 
 fn factor(i: &str) -> IResult<&str, i64> {
