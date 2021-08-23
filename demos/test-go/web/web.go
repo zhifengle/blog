@@ -1,20 +1,35 @@
-package web
+package main
 
 import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 )
 
 func main() {
 	http.HandleFunc("/", sayHelloFunc)
-	err := http.ListenAndServe(":8080", nil)
+	http.HandleFunc("/snippet", showSnippet)
+	err := http.ListenAndServe(":4000", nil)
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}
 }
 
+func showSnippet(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.Atoi(r.URL.Query().Get("id"))
+
+	if err != nil || id < 1 {
+		http.NotFound(w, r)
+		return
+	}
+
+	fmt.Fprintf(w, "Display a specific snippet with ID %d...", id)
+}
+
 func sayHelloFunc(w http.ResponseWriter, r *http.Request) {
+	// 修改 header
+	// w.Header().Add("Cache-Control", "public")
 	r.ParseForm()
 	fmt.Println(r.Form)
 	fmt.Println("path: ", r.URL.Path)
