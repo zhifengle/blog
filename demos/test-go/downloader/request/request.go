@@ -8,6 +8,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	urlPkg "net/url"
 	"time"
 )
 
@@ -21,9 +22,29 @@ import (
 // https://github.com/iawia002/annie/blob/master/request/request.go
 // 使用的内部变量来设置 Request 的一些参数
 
+// 新增一个全局变量
+var proxyUrl string
+
+func SetProxy(url string) {
+	proxyUrl = url
+}
+
 func Request(method string, url string, body io.Reader, headers map[string]string) (*http.Response, error) {
+	// body 传 json 时
+	// b := bytes.NewReaders(s)
+
+	//r := strings.NewReader("my request")
+	//resp, err := http.Post("http://foo.bar", "application/x-www-form-urlencoded", r)
+
+	// 重置
+	defer SetProxy("")
+	p := http.ProxyFromEnvironment
+	if proxyUrl != "" {
+		proxy, _ := urlPkg.Parse(proxyUrl)
+		p = http.ProxyURL(proxy)
+	}
 	transport := &http.Transport{
-		Proxy:               http.ProxyFromEnvironment,
+		Proxy:               p,
 		DisableCompression:  true,
 		TLSHandshakeTimeout: 10 * time.Second,
 		TLSClientConfig:     &tls.Config{InsecureSkipVerify: true},
