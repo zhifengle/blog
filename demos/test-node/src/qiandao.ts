@@ -5,13 +5,13 @@ import { fetchInfo, fetchText } from './utils/fetchData';
 import { loggerFactory } from './utils/logger';
 
 // node start
+const homedir = require('os').homedir();
+const logsPath = path.join(homedir, 'Documents/test/logs');
 const CONFIG_FILE = 'qiandao-config.json';
-const CONFIG_FILE_PATH = path.join(__dirname, `../${CONFIG_FILE}`);
+const CONFIG_FILE_PATH = path.join(logsPath, `${CONFIG_FILE}`);
 const storage = new Storage(CONFIG_FILE_PATH);
 const GM_getValue = storage.getValue.bind(storage);
 const GM_setValue = storage.setValue.bind(storage);
-const homedir = require('os').homedir();
-const logsPath = path.join(homedir, 'Documents/test/logs');
 const logger = loggerFactory('qiandao', logsPath);
 // node end
 
