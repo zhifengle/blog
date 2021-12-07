@@ -1,6 +1,7 @@
 import { AxiosRequestConfig } from 'axios';
 import { httpsAgent } from './agent';
 import { request } from './request';
+import { USER_SITE_CONFIG } from './site-config';
 
 export type IFetchOpts = {
   method?: string;
@@ -13,13 +14,6 @@ type IAjaxType = 'text' | 'json' | 'blob' | 'arraybuffer';
 
 // @TODO 添加 cookie 签到才有登录信息
 const req_site_configs: { [key: string]: AxiosRequestConfig } = {
-  'm.lrts.me': {
-    headers: {
-      'user-agent':
-        'Mozilla/5.0 (Linux; U; Android 9; tr-tr; Redmi Note 7 Build/PKQ1.180904.001) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/89.0.4389.116 Mobile Safari/537.36 XiaoMi/MiuiBrowser/12.15.2-gn',
-      referrer: 'https://m.lrts.me/user',
-    },
-  },
   'www.south-plus.net': {
     httpsAgent: httpsAgent,
     headers: {
@@ -69,15 +63,16 @@ export async function fetchInfo(
     type = 'arraybuffer';
   }
   const hostname = new URL(url)?.hostname;
+  const config = { ...req_site_configs, ...USER_SITE_CONFIG }[hostname];
   const res = await request(url, {
     timeout: TIMEOUT,
     method,
     responseType: type,
     ...gmXhrOpts,
-    ...req_site_configs[hostname],
+    ...config,
     headers: {
       ...gmXhrOpts.headers,
-      ...req_site_configs[hostname]?.headers,
+      ...config?.headers,
     },
   });
   return res.data;

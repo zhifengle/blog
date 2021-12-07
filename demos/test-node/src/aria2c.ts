@@ -2,6 +2,8 @@ import { Command } from 'commander';
 import path from 'path';
 import { fetchInfo } from './utils/fetchData';
 import { request } from './utils/request';
+import { USER_SITE_CONFIG } from './utils/site-config';
+import { randomSleep } from './utils/utils';
 
 type InfoJson = {
   name: string;
@@ -32,7 +34,7 @@ program
         entityType = 3;
         getListFn = getBookMenu;
       }
-      let lst = await getListFn(entityId, 20);
+      let lst = await getListFn(entityId);
       // @TODO start end number
       lst = getBookList(lst, 1, 2);
       for (const info of lst) {
@@ -41,7 +43,11 @@ program
         if (audioUrl) {
           console.log('获取音频链接成功: ', name);
           sendToAria2(audioUrl, name, options.path);
+        } else {
+          console.log('获取音频链接失败: ', name);
         }
+        // 随机等待 3-5 秒
+        await randomSleep(5000, 3000);
       }
       // console.log(start, end);
       // await run(reStr, dir, options);
@@ -109,6 +115,7 @@ async function sendToAria2(url: string, filename: string, savePath: string) {
         split: '32',
         'max-connection-per-server': '5',
         'seed-ratio': '0.1',
+        'user-agent': USER_SITE_CONFIG['m.lrts.me'].headers['user-agent'],
       },
     ],
   });
