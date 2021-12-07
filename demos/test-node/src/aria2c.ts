@@ -1,8 +1,9 @@
 import { Command } from 'commander';
 import path from 'path';
-import { fetchInfo } from './utils/fetchData';
+import { SiteConfigReq } from 'site';
+import { fetchInfo, setOption as setFetchOption } from './utils/fetchData';
 import { request } from './utils/request';
-import { USER_SITE_CONFIG } from './utils/site-config';
+import { getUserSiteConfig } from './utils/site-config';
 import { randomSleep } from './utils/utils';
 
 type InfoJson = {
@@ -13,8 +14,9 @@ type InfoJson = {
 // aria2 task id
 let taskId = 1;
 
-// https://github.com/sonnyp/aria2.js
+let USER_SITE_CONFIG: SiteConfigReq = {};
 const homedir = require('os').homedir();
+
 const downloadPath = path.join(homedir, 'Downloads');
 const program = new Command('tingshu');
 program.version('0.0.1').description('A downloader for lrts');
@@ -22,11 +24,14 @@ program
   .requiredOption('-u, --url <type>', 'lrts book url')
   .option('-p, --path <type>', 'the path for saving audio', downloadPath)
   .option('-t, --token <type>', 'aria2 secret token', '')
+  .option('--config <type>', 'user config path', homedir)
   .argument('<start>', 'start chapter')
   .argument('[end]', 'last chapter', 0)
   .action(async (start, end, options) => {
     try {
-      // 在 site-config.ts 里面配置 Cookie 值
+      // 在 node-site-config.json 里面配置 Cookie 值
+      USER_SITE_CONFIG = getUserSiteConfig(options.config);
+      setFetchOption(USER_SITE_CONFIG);
       const loginFlag = await isLogin();
       if (!loginFlag) {
         // 登录失效返回
@@ -57,8 +62,8 @@ program
         } else {
           console.log('获取音频链接失败: ', name);
         }
-        // 随机等待 3-5 秒
-        await randomSleep(5000, 3000);
+        // 随机等待 4-5 秒
+        await randomSleep(5000, 4000);
       }
       taskId = 1;
       // console.log(start, end);
@@ -122,6 +127,7 @@ function getBookList(list: InfoJson[], start: number, end: number): InfoJson[] {
   return list.slice(start - 1, end === 0 ? undefined : end);
 }
 
+// https://github.com/sonnyp/aria2.js
 async function sendToAria2(
   url: string,
   filename: string,

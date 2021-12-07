@@ -1,7 +1,7 @@
 import { AxiosRequestConfig } from 'axios';
-import { httpsAgent } from './agent';
+import { SiteConfigReq } from 'site';
+import { httpAgent, httpsAgent } from './agent';
 import { request } from './request';
-import { USER_SITE_CONFIG } from './site-config';
 
 export type IFetchOpts = {
   method?: string;
@@ -11,6 +11,12 @@ export type IFetchOpts = {
   [key: string]: any;
 };
 type IAjaxType = 'text' | 'json' | 'blob' | 'arraybuffer';
+
+let USER_SITE_CONFIG: SiteConfigReq = {};
+
+export function setOption(config: SiteConfigReq) {
+  USER_SITE_CONFIG = config;
+}
 
 // @TODO 添加 cookie 签到才有登录信息
 const req_site_configs: { [key: string]: AxiosRequestConfig } = {
@@ -58,6 +64,13 @@ export async function fetchInfo(
   const gmXhrOpts = { ...opts };
   if (method === 'POST' && gmXhrOpts.body) {
     gmXhrOpts.data = gmXhrOpts.body;
+  }
+  // JSON 配置 HttpsAgent
+  if (gmXhrOpts.httpsAgent === 'httpsAgent') {
+    gmXhrOpts.httpsAgent = httpsAgent;
+  }
+  if (gmXhrOpts.httpAgent && gmXhrOpts.httpAgent === 'httpAgent') {
+    gmXhrOpts.httpAgent = httpAgent;
   }
   if (opts.decode) {
     type = 'arraybuffer';
