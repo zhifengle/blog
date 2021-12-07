@@ -10,6 +10,9 @@ type InfoJson = {
   section: string;
 } & any;
 
+// aria2 task id
+let taskId = 1;
+
 // https://github.com/sonnyp/aria2.js
 const homedir = require('os').homedir();
 const downloadPath = path.join(homedir, 'Downloads');
@@ -18,11 +21,20 @@ program.version('0.0.1').description('A downloader for lrts');
 program
   .requiredOption('-u, --url <type>', 'lrts book url')
   .option('-p, --path <type>', 'the path for saving audio', downloadPath)
-  // .argument('<start>', 'start chapter')
-  // .argument('[end]', 'last chapter', 0)
-  .action(async (options) => {
+  .option('-t, --token <type>', 'aria2 secret token', '')
+  .argument('<start>', 'start chapter')
+  .argument('[end]', 'last chapter', 0)
+  .action(async (start, end, options) => {
     try {
-      console.log(options);
+      // 在 site-config.ts 里面配置 Cookie 值
+      const loginFlag = await isLogin();
+      if (!loginFlag) {
+        // 登录失效返回
+        console.log('登录 Cookie 失效');
+        return;
+      }
+      console.log('下载路径: ', options.path);
+      console.log('=======================================');
       const url = options.url;
       const entityId = url.split('/').slice(-1)[0];
       let entityType;
@@ -35,20 +47,20 @@ program
         getListFn = getBookMenu;
       }
       let lst = await getListFn(entityId);
-      // @TODO start end number
-      lst = getBookList(lst, 1, 2);
+      lst = getBookList(lst, start, end);
       for (const info of lst) {
         const audioUrl = await getAudioUrl(info, entityId, entityType);
         const name = info.name + '.' + getAudioExt(audioUrl);
         if (audioUrl) {
           console.log('获取音频链接成功: ', name);
-          sendToAria2(audioUrl, name, options.path);
+          sendToAria2(audioUrl, name, options.path, options.token);
         } else {
           console.log('获取音频链接失败: ', name);
         }
         // 随机等待 3-5 秒
         await randomSleep(5000, 3000);
       }
+      taskId = 1;
       // console.log(start, end);
       // await run(reStr, dir, options);
     } catch (error) {
@@ -56,6 +68,15 @@ program
     }
   });
 program.parse();
+
+async function isLogin() {
+  const res = await fetchInfo(`https://m.lrts.me/user`, 'text');
+  // if (res.includes(''))
+  if (res.includes('马上登录')) {
+    return false;
+  }
+  return true;
+}
 
 async function getAudioUrl(
   info: InfoJson,
@@ -101,26 +122,37 @@ function getBookList(list: InfoJson[], start: number, end: number): InfoJson[] {
   return list.slice(start - 1, end === 0 ? undefined : end);
 }
 
-async function sendToAria2(url: string, filename: string, savePath: string) {
+async function sendToAria2(
+  url: string,
+  filename: string,
+  savePath: string,
+  token = ''
+) {
+  let params: any[] = [
+    [url],
+    {
+      out: filename,
+      dir: savePath,
+      split: '32',
+      'max-connection-per-server': '5',
+      'seed-ratio': '0.1',
+      'user-agent': USER_SITE_CONFIG['m.lrts.me'].headers['user-agent'],
+    },
+  ];
+  if (token) {
+    params.unshift(`token:${token}`);
+  }
   const res = await request.post('http://localhost:6800/jsonrpc', {
     jsonrpc: '2.0',
     method: 'aria2.addUri',
-    id: 1,
-    params: [
-      // token:xxx
-      [url],
-      {
-        out: filename,
-        dir: savePath,
-        split: '32',
-        'max-connection-per-server': '5',
-        'seed-ratio': '0.1',
-        'user-agent': USER_SITE_CONFIG['m.lrts.me'].headers['user-agent'],
-      },
-    ],
+    id: taskId,
+    params,
   });
   if (res.status !== 200) {
     console.log(`添加任务: ${filename} 失败`);
+  } else if (res.status === 200) {
+    console.log(`添加任务: ${filename} 成功`);
   }
+  taskId++;
   return res;
 }
