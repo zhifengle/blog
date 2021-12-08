@@ -20,33 +20,10 @@ export function setOption(config: SiteConfigReq) {
 
 // @TODO 添加 cookie 签到才有登录信息
 const req_site_configs: { [key: string]: AxiosRequestConfig } = {
-  'www.south-plus.net': {
-    httpsAgent: httpsAgent,
-    headers: {
-      referrer: 'https://www.south-plus.net/',
-    },
-  },
-  'bbs4.2djgame.net': {
-    httpsAgent: httpsAgent,
-    headers: {
-      referrer: 'https://bbs4.2djgame.net/home/forum.php',
-    },
-  },
-  'zodgame.xyz': {
-    httpsAgent: httpsAgent,
-    headers: {
-      referrer: 'https://zodgame.xyz/',
-    },
-  },
-  'www.52pojie.cn': {
-    headers: {
-      Host: 'www.52pojie.cn',
-    },
-  },
   'v2ex.com': {
     httpsAgent: httpsAgent,
     headers: {
-      referrer: 'https://v2ex.com/',
+      Referer: 'https://v2ex.com/',
     },
   },
 };
@@ -65,18 +42,18 @@ export async function fetchInfo(
   if (method === 'POST' && gmXhrOpts.body) {
     gmXhrOpts.data = gmXhrOpts.body;
   }
-  // JSON 配置 HttpsAgent
-  if (gmXhrOpts.httpsAgent === 'httpsAgent') {
-    gmXhrOpts.httpsAgent = httpsAgent;
-  }
-  if (gmXhrOpts.httpAgent && gmXhrOpts.httpAgent === 'httpAgent') {
-    gmXhrOpts.httpAgent = httpAgent;
-  }
   if (opts.decode) {
     type = 'arraybuffer';
   }
   const hostname = new URL(url)?.hostname;
   const config = { ...req_site_configs, ...USER_SITE_CONFIG }[hostname];
+  // JSON 配置 HttpsAgent
+  if (config.httpsAgent === 'httpsAgent') {
+    config.httpsAgent = httpsAgent;
+  }
+  if (config.httpAgent && config.httpAgent === 'httpAgent') {
+    config.httpAgent = httpAgent;
+  }
   const res = await request(url, {
     timeout: TIMEOUT,
     method,

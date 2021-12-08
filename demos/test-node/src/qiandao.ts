@@ -1,8 +1,14 @@
 import path from 'path';
 import Storage from './storage';
 import { randomNum } from './utils/utils';
-import { fetchInfo, fetchText } from './utils/fetchData';
+import {
+  fetchInfo,
+  fetchText,
+  setOption as setFetchOption,
+} from './utils/fetchData';
 import { loggerFactory } from './utils/logger';
+import { SiteConfigReq } from 'site';
+import { getUserSiteConfig } from './utils/site-config';
 
 // node start
 const homedir = require('os').homedir();
@@ -13,6 +19,9 @@ const storage = new Storage(CONFIG_FILE_PATH);
 const GM_getValue = storage.getValue.bind(storage);
 const GM_setValue = storage.setValue.bind(storage);
 const logger = loggerFactory('qiandao', logsPath);
+// config
+let USER_SITE_CONFIG: SiteConfigReq = getUserSiteConfig(homedir);
+setFetchOption(USER_SITE_CONFIG);
 // node end
 
 type SiteConfig = {
@@ -48,8 +57,14 @@ async function signSouth() {
         )
       );
       setSignResult('south-plus' + taskId, true);
-    } else {
+    } else if (res.includes('拒离上次申请')) {
       // 已经签到了
+      setSignResult('south-plus' + taskId, true);
+      if (taskId === 14) {
+        logger.info(`${site_name}周任务 已签到`);
+      } else if (taskId === 15) {
+        logger.info(`${site_name}日任务 已签到`);
+      }
     }
   };
   if (!getSignResult(site_name + '14', 7)) {
@@ -101,9 +116,10 @@ const siteDict: SiteConfig[] = [
     href: 'https://www.south-plus.net/',
     signFn: signSouth,
   },
+  /*
   {
     name: '52pojie',
-    href: 'https://www.52pojie.cn/',
+    href: 'https://www.52pojie.cn/forum.php',
     async signFn() {
       if (getSignResult(this.name)) {
         logger.info(`${this.name} 已签到`);
@@ -124,10 +140,11 @@ const siteDict: SiteConfig[] = [
           return;
         }
       }
-      await fetchText(genUrl(this.href, pathname));
+      const qdText = await fetchText(genUrl(this.href, pathname));
       setSignResult(this.name, true);
     },
   },
+  */
   {
     name: 'v2ex',
     href: ['https://v2ex.com/', 'https://www.v2ex.com/'],
@@ -145,6 +162,11 @@ const siteDict: SiteConfig[] = [
       const content = await fetchText(genUrl(href, 'mission/daily'));
       if (content.match(/你是机器人么？/)) {
         logger.error(`${this.name} 需要登录`);
+        return;
+      }
+      if (content.match(/每日登录奖励已领取/)) {
+        logger.info(`${this.name} 已签到`);
+        setSignResult(this.name, true);
         return;
       }
       const m = content.match(/mission\/daily\/redeem\?once=\d+/);
@@ -195,6 +217,11 @@ const siteDict: SiteConfig[] = [
         logger.error(`${this.name} 需要登录`);
         return;
       }
+      if (content.includes('您今天已经签到过了或者签到时间还未开始')) {
+        setSignResult(this.name, true);
+        logger.info(`${this.name} 已签到`);
+        return;
+      }
       const formhashRe =
         /<input\s*type="hidden"\s*name="formhash"\s*value="([^"]+)"\s*\/?>/;
       const matchFormhash = content.match(formhashRe);
@@ -226,9 +253,6 @@ const siteDict: SiteConfig[] = [
           setSignResult(this.name, true);
           return;
         }
-      }
-      if (content.includes('您今天已经签到过了或者签到时间还未开始')) {
-        setSignResult(this.name, true);
       }
     },
   },
