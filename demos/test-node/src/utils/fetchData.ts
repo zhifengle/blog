@@ -46,7 +46,7 @@ export async function fetchInfo(
     type = 'arraybuffer';
   }
   const hostname = new URL(url)?.hostname;
-  const config = { ...req_site_configs, ...USER_SITE_CONFIG }[hostname];
+  const config = { ...req_site_configs, ...USER_SITE_CONFIG }[hostname] || {};
   // JSON 配置 HttpsAgent
   if (config.httpsAgent === 'httpsAgent') {
     config.httpsAgent = httpsAgent;

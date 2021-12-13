@@ -8,6 +8,11 @@ export const request = axios.create({
   },
 });
 
+request.interceptors.request.use((req) => {
+  // todo
+  return req;
+});
+
 request.interceptors.response.use((response) => {
   const ctype = response.headers['content-type'];
   // 返回文本并且是 arraybuffer

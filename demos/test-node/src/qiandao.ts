@@ -9,6 +9,7 @@ import {
 import { loggerFactory } from './utils/logger';
 import { SiteConfigReq } from 'site';
 import { getUserSiteConfig } from './utils/site-config';
+import { JSDOM } from 'jsdom';
 
 // node start
 const homedir = require('os').homedir();
@@ -22,6 +23,16 @@ const logger = loggerFactory('qiandao', logsPath);
 // config
 let USER_SITE_CONFIG: SiteConfigReq = getUserSiteConfig(homedir);
 setFetchOption(USER_SITE_CONFIG);
+// web 使用 DOMParser; parser.parseFromString(htmlString, "text/html");
+function getDocObj(htmlStr: string): Document {
+  const dom = new JSDOM(htmlStr);
+  return dom.window.document;
+}
+
+// https://stackoverflow.com/questions/54903199/how-to-ignore-ssl-certificate-validation-in-node-requests/54903835
+// 推荐使用 httpsAgent
+// process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+
 // node end
 
 type SiteConfig = {
@@ -190,6 +201,8 @@ const siteDict: SiteConfig[] = [
         logger.info(`${this.name} 已签到`);
         return;
       }
+      // 证书过期临时办法 TODO
+      process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
       const content = await fetchText(
         genUrl(this.href, 'home.php?mod=task&do=apply&id=1')
       );
@@ -199,6 +212,7 @@ const siteDict: SiteConfig[] = [
         logger.error(`${this.name} 需要登录`);
         return;
       }
+      process.env.NODE_TLS_REJECT_UNAUTHORIZED = undefined;
       setSignResult(this.name, true);
     },
   },
@@ -256,12 +270,96 @@ const siteDict: SiteConfig[] = [
       }
     },
   },
+  {
+    name: '2dfan',
+    href: 'https://galge.fun/',
+    async signFn() {
+      if (getSignResult(this.name)) {
+        logger.info(`${this.name} 已签到`);
+        return;
+      }
+      const content = await fetchText('https://galge.fun');
+      if (content.includes('已连续签到')) {
+        logger.info(`${this.name} 已签到`);
+        setSignResult(this.name, true);
+        return;
+      } else if (content.includes('/users/not_authenticated')) {
+        logger.error(`${this.name} 需要登录`);
+        return;
+      }
+      const checkRes = await fetchInfo(genUrl(this.href, 'checkins'), 'json', {
+        method: 'POST',
+        data: null,
+        headers: {
+          'x-requested-with': 'XMLHttpRequest',
+        },
+      });
+      if (!checkRes.checkins_count) {
+        logger.error(`${this.name} 签到失败`);
+        return;
+      }
+      setSignResult(this.name, true);
+    },
+  },
+  {
+    name: 'manhuabudang',
+    href: 'https://www.manhuabudang.com/u.php',
+    async signFn() {
+      if (getSignResult(this.name)) {
+        logger.info(`${this.name} 已签到`);
+        return;
+      }
+      const content = await fetchText('https://www.manhuabudang.com/u.php');
+      const $doc = getDocObj(content);
+      if ($doc.querySelector('button.card.card_old')) {
+        logger.info(`${this.name} 已签到`);
+        setSignResult(this.name, true);
+        return;
+      } else if (content.includes('您没有登录或者您没有权限访问此页面')) {
+        logger.error(`${this.name} 需要登录`);
+        return;
+      }
+      const verifyhash = new Function(
+        $doc.querySelector('head > script:last-child').innerHTML +
+          ' return verifyhash;'
+      )();
+      const checkRes = await fetchInfo(
+        genUrl(this.href, 'jobcenter.php'),
+        'json',
+        {
+          method: 'POST',
+          params: {
+            // nowtime: 1639357663589
+            action: 'punch',
+            nowtime: +new Date(),
+            verify: verifyhash,
+          },
+        }
+      );
+      if (!checkRes.checkins_count) {
+        logger.error(`${this.name} 签到失败`);
+        return;
+      }
+      setSignResult(this.name, true);
+    },
+  },
 ];
 async function main() {
-  // @TODO 增加设置选项，用于当个网站签到或者全部签到
   for (let i = 0; i < siteDict.length; i++) {
     const obj = siteDict[i];
-    await obj.signFn();
+    if (['south-plus', 'zodgame'].includes(obj.name)) {
+      continue;
+    }
+    // for test
+    // if (obj.name === 'manhuabudang') {
+    //   await obj.signFn();
+    //   return;
+    // }
+    try {
+      await obj.signFn();
+    } catch (error) {
+      console.error(error);
+    }
   }
 }
 main();
