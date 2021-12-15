@@ -201,8 +201,6 @@ const siteDict: SiteConfig[] = [
         logger.info(`${this.name} 已签到`);
         return;
       }
-      // 证书过期临时办法 TODO
-      process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
       const content = await fetchText(
         genUrl(this.href, 'home.php?mod=task&do=apply&id=1')
       );
@@ -212,7 +210,6 @@ const siteDict: SiteConfig[] = [
         logger.error(`${this.name} 需要登录`);
         return;
       }
-      process.env.NODE_TLS_REJECT_UNAUTHORIZED = undefined;
       setSignResult(this.name, true);
     },
   },
@@ -309,7 +306,9 @@ const siteDict: SiteConfig[] = [
         logger.info(`${this.name} 已签到`);
         return;
       }
-      const content = await fetchText('https://www.manhuabudang.com/u.php');
+      const content = await fetchText('https://www.manhuabudang.com/u.php', {
+        decode: 'gbk',
+      });
       const $doc = getDocObj(content);
       if ($doc.querySelector('button.card.card_old')) {
         logger.info(`${this.name} 已签到`);
@@ -323,35 +322,41 @@ const siteDict: SiteConfig[] = [
         $doc.querySelector('head > script:last-child').innerHTML +
           ' return verifyhash;'
       )();
+      const fd = new URLSearchParams();
+      fd.append('step', '2');
       const checkRes = await fetchInfo(
         genUrl(this.href, 'jobcenter.php'),
-        'json',
+        'text',
         {
           method: 'POST',
+          decode: 'gbk',
           params: {
             // nowtime: 1639357663589
             action: 'punch',
             nowtime: +new Date(),
             verify: verifyhash,
           },
+          headers: { 'content-type': 'application/x-www-form-urlencoded' },
+          body: fd,
         }
       );
-      if (!checkRes.checkins_count) {
-        logger.error(`${this.name} 签到失败`);
+      if (checkRes.includes('你已经打卡') || checkRes.includes('漫画+2')) {
+        setSignResult(this.name, true);
         return;
+      } else {
+        logger.error(`${this.name} 签到失败`);
       }
-      setSignResult(this.name, true);
     },
   },
 ];
 async function main() {
   for (let i = 0; i < siteDict.length; i++) {
     const obj = siteDict[i];
-    if (['south-plus', 'zodgame'].includes(obj.name)) {
+    if (['zodgame'].includes(obj.name)) {
       continue;
     }
     // for test
-    // if (obj.name === 'manhuabudang') {
+    // if (obj.name === '2djgame') {
     //   await obj.signFn();
     //   return;
     // }
