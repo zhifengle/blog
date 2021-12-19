@@ -71,11 +71,6 @@ async function signSouth() {
     } else if (res.includes('拒离上次申请')) {
       // 已经签到了
       setSignResult('south-plus' + taskId, true);
-      if (taskId === 14) {
-        logger.info(`${site_name}周任务 已签到`);
-      } else if (taskId === 15) {
-        logger.info(`${site_name}日任务 已签到`);
-      }
     }
   };
   if (!getSignResult(site_name + '14', 7)) {
@@ -91,6 +86,7 @@ async function signSouth() {
 }
 
 function setSignResult(site: string, result: boolean) {
+  logger.info(`${site} 已签到`);
   GM_setValue(USERJS_PREFIX + site.toUpperCase(), {
     result: Number(result),
     date: +new Date(),
@@ -176,11 +172,11 @@ const siteDict: SiteConfig[] = [
         return;
       }
       if (content.match(/每日登录奖励已领取/)) {
-        logger.info(`${this.name} 已签到`);
         setSignResult(this.name, true);
         return;
       }
       const m = content.match(/mission\/daily\/redeem\?once=\d+/);
+      // 为匹配到链接时，已签到
       if (m) {
         await fetchText(genUrl(href, m[0]), {
           headers: {
@@ -188,7 +184,7 @@ const siteDict: SiteConfig[] = [
           },
         });
       } else {
-        logger.info(`${this.name} 已签到`);
+        // logger.info(`${this.name} 已签到`);
       }
       setSignResult(this.name, true);
     },
@@ -205,7 +201,8 @@ const siteDict: SiteConfig[] = [
         genUrl(this.href, 'home.php?mod=task&do=apply&id=1')
       );
       if (content.match('抱歉，本期您已申請過此任務，請下期再來')) {
-        logger.info(`${this.name} 已签到`);
+        setSignResult(this.name, true);
+        return;
       } else if (content.match('您需要先登錄才能繼續本操作')) {
         logger.error(`${this.name} 需要登录`);
         return;
@@ -230,7 +227,6 @@ const siteDict: SiteConfig[] = [
       }
       if (content.includes('您今天已经签到过了或者签到时间还未开始')) {
         setSignResult(this.name, true);
-        logger.info(`${this.name} 已签到`);
         return;
       }
       const formhashRe =
@@ -277,7 +273,6 @@ const siteDict: SiteConfig[] = [
       }
       const content = await fetchText('https://galge.fun');
       if (content.includes('已连续签到')) {
-        logger.info(`${this.name} 已签到`);
         setSignResult(this.name, true);
         return;
       } else if (content.includes('/users/not_authenticated')) {
@@ -311,7 +306,6 @@ const siteDict: SiteConfig[] = [
       });
       const $doc = getDocObj(content);
       if ($doc.querySelector('button.card.card_old')) {
-        logger.info(`${this.name} 已签到`);
         setSignResult(this.name, true);
         return;
       } else if (content.includes('您没有登录或者您没有权限访问此页面')) {
