@@ -9,3 +9,6 @@ extension.crx
 extension.pem
 *-bk.test.ts
 web-ext-artifacts
+
+site.json
+*.txt

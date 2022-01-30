@@ -33,4 +33,4 @@ var message = JSON.stringify(require('./site.json'));
 var ecbEncrypt = AES_ECB_ENCRYPT(message, key);
 
 const fs = require('fs');
-fs.writeFileSync('db.txt', `"${ecbEncrypt}"`, 'utf-8');
+fs.writeFileSync('db.txt', `"${key}"\n\n"${ecbEncrypt}"`, 'utf-8');
