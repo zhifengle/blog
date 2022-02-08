@@ -25,6 +25,7 @@ program
   .option('-p, --path <type>', 'the path for saving audio', downloadPath)
   .option('-t, --token <type>', 'aria2 secret token', '')
   .option('--config <type>', 'user config path', homedir)
+  .option('--port <type>', 'port', '6800')
   .argument('<start>', 'start chapter')
   .argument('[end]', 'last chapter', 0)
   .action(async (start, end, options) => {
@@ -58,7 +59,13 @@ program
         const name = info.name + '.' + getAudioExt(audioUrl);
         if (audioUrl) {
           console.log('获取音频链接成功: ', name);
-          sendToAria2(audioUrl, name, options.path, options.token);
+          sendToAria2(
+            audioUrl,
+            name,
+            options.path,
+            options.token,
+            options.port
+          );
         } else {
           console.log('获取音频链接失败: ', name);
         }
@@ -132,7 +139,8 @@ async function sendToAria2(
   url: string,
   filename: string,
   savePath: string,
-  token = ''
+  token = '',
+  port = '6800'
 ) {
   let params: any[] = [
     [url],
@@ -148,7 +156,7 @@ async function sendToAria2(
   if (token) {
     params.unshift(`token:${token}`);
   }
-  const res = await request.post('http://localhost:6800/jsonrpc', {
+  const res = await request.post(`http://localhost:${port}/jsonrpc`, {
     jsonrpc: '2.0',
     method: 'aria2.addUri',
     id: taskId,
