@@ -22,7 +22,7 @@ mod tests {
             active: true,
             sign_in_count: 1,
         };
-        let user2 = User {
+        let _user2 = User {
             email: String::from("another@example.com"),
             username: String::from("anotherusername567"),
             ..user1
