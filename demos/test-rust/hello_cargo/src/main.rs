@@ -2,6 +2,7 @@ mod closures;
 mod deal_str;
 mod enum_demo;
 // 迭代器
+mod cmd_demo;
 mod iterator_demo;
 mod macro_demo;
 mod misc_fn;
