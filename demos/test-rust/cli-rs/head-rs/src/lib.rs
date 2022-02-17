@@ -1,13 +1,12 @@
-use std::{error::Error, fs::File};
+use std::{
+    error::Error,
+    fs::File,
+    io::{self, BufRead, BufReader, Read},
+};
 
 use clap::{arg, App, ArgMatches};
 
 type MyResult<T> = Result<T, Box<dyn Error>>;
-
-pub fn run(config: Config) -> MyResult<()> {
-    dbg!(config);
-    Ok(())
-}
 
 #[derive(Debug)]
 pub struct Config {
@@ -78,8 +77,63 @@ fn parse_positive_int(val: &str) -> MyResult<usize> {
     match val.parse() {
         Ok(n) if n > 0 => Ok(n),
         // 将字符串转化成 err ??
+        // Err(val.into()); Err(Into::into(val))
         _ => Err(From::from(val)),
     }
+}
+
+// -------------------------
+// 处理文件
+
+fn open(filename: &str) -> MyResult<Box<dyn BufRead>> {
+    match filename {
+        "-" => Ok(Box::new(BufReader::new(io::stdin()))),
+        _ => Ok(Box::new(BufReader::new(File::open(filename)?))),
+    }
+}
+
+pub fn run(config: Config) -> MyResult<()> {
+    let num_files = config.files.len();
+    for (file_num, filename) in config.files.iter().enumerate() {
+        match open(filename) {
+            Err(err) => eprintln!("{}: {}", filename, err),
+            Ok(mut file) => {
+                if num_files > 1 {
+                    println!(
+                        "{}==> {} <==",
+                        if file_num > 0 { "\n" } else { "" },
+                        filename
+                    );
+                }
+                // 0xA lf; 0xD cr
+                // lines() 返回的行不包含换行符  ----> 使用 read_line()
+                // for line in file.lines().take(config.lines) {
+                //     let line = line?;
+                //     println!("{}", line);
+                // }
+                if let Some(num_bytes) = config.bytes {
+                    // 需要引入 io::Read 这样才能使用 file.take()
+                    let mut handle = file.take(num_bytes as u64);
+                    let mut buffer = vec![0; num_bytes];
+                    // 这里读取的一定的字节。读取整个文件是危险的，比如文件过大，导致内存爆了
+                    let bytes_read = handle.read(&mut buffer)?;
+                    // 有损的转换字符
+                    print!("{}", String::from_utf8_lossy(&buffer[..bytes_read]));
+                } else {
+                    let mut line = String::new();
+                    for _ in 0..config.lines {
+                        let bytes = file.read_line(&mut line)?;
+                        if bytes == 0 {
+                            break;
+                        }
+                        print!("{}", line);
+                        line.clear();
+                    }
+                }
+            }
+        }
+    }
+    Ok(())
 }
 
 #[test]
