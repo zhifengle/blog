@@ -1,5 +1,6 @@
 import CryptoJS from 'crypto-js';
 import { genRandomStr } from './utils/utils';
+import path from 'path';
 
 /**
  * AES-256-ECB对称加密
@@ -28,9 +29,13 @@ const key = genRandomStr(32);
     },
 }
  */
-var message = JSON.stringify(require('./site.json'));
+var message = JSON.stringify(require(path.join(__dirname, '../site.json')));
 
 var ecbEncrypt = AES_ECB_ENCRYPT(message, key);
 
 const fs = require('fs');
-fs.writeFileSync('db.txt', `"${key}"\n\n"${ecbEncrypt}"`, 'utf-8');
+fs.writeFileSync(
+  path.join(__dirname, '../db.txt'),
+  `"${key}"\n\n"${ecbEncrypt}"`,
+  'utf-8'
+);
