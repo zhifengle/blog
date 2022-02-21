@@ -1,0 +1,13 @@
+[package]
+name = "demo-rs"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+clap = "3"
+[dev-dependencies]
+assert_cmd = "2"
+predicates = "2"
+rand = "0.8"
