@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>webgl boilerplate</title>
+</head>
+
+<body>
+  <canvas id="c" width="300" height="300"></canvas>
+  <script id="vertex-shader-2d" type="notjs">
+      attribute vec2 position;
+      varying vec3 color;
+
+      void main() {
+        gl_PointSize = 1.0;
+        color = vec3(0.5 + position * 0.5, 0.0);
+        // gl_Position = vec4(position * 0.5, 1.0, 1.0);
+        gl_Position = vec4(position, 1.0, 1.0);
+      }
+
+  </script>
+  <script id="fragment-shader-2d" type="notjs">
+  // fragment shaders don't have a default precision so we need
+  // to pick one. mediump is a good default
+  precision mediump float;
+  void main() {
+    // gl_FragColor is a special variable a fragment shader
+    // is responsible for setting
+    gl_FragColor = vec4(1, 0, 0.5, 1); // return redish-purple
+  }
+  </script>
+  <script src="https://webglfundamentals.org/webgl/resources/webgl-utils.js"></script>
+  <script>
+    function main() {
+      // Get A WebGL context
+      var canvas = document.querySelector("#c");
+      var gl = canvas.getContext("webgl");
+      if (!gl) {
+        return;
+      }
+      // setup GLSL program
+      var program = webglUtils.createProgramFromScripts(gl, ["vertex-shader-2d", "fragment-shader-2d"]);
+      gl.useProgram(program);
+
+      // 变量名在 shader 里面
+      var positionAttributeLocation = gl.getAttribLocation(program, "position");
+
+      // Create a buffer and put three 2d clip space points in it
+      var positionBuffer = gl.createBuffer();
+
+      // Bind it to ARRAY_BUFFER (think of it as ARRAY_BUFFER = positionBuffer)
+      gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+
+      var positions = new Float32Array([
+        -1, -1,
+        0, 1,
+        1, -1,
+      ]);
+      gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
+
+      // code above this line is initialization code.
+      // code below this line is rendering code.
+
+      // 没效果
+      webglUtils.resizeCanvasToDisplaySize(gl.canvas);
+
+      // 没效果
+      // Tell WebGL how to convert from clip space to pixels
+      gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+
+      // Clear the canvas
+      gl.clearColor(0, 0, 0, 0);
+      gl.clear(gl.COLOR_BUFFER_BIT);
+
+      // Turn on the attribute
+      gl.enableVertexAttribArray(positionAttributeLocation);
+
+      // Tell the attribute how to get data out of positionBuffer (ARRAY_BUFFER)
+      var size = 2;          // 2 components per iteration
+      var type = gl.FLOAT;   // the data is 32bit floats
+      var normalize = false; // don't normalize the data
+      var stride = 0;        // 0 = move forward size * sizeof(type) each iteration to get the next position
+      var offset = 0;        // start at the beginning of the buffer
+      gl.vertexAttribPointer(
+        positionAttributeLocation, size, type, normalize, stride, offset);
+
+      // draw
+      var primitiveType = gl.TRIANGLES;
+      var offset = 0;
+      var count = 3;
+      gl.drawArrays(primitiveType, offset, count);
+    }
+    main();
+  </script>
+
+</body>
+
+</html>
