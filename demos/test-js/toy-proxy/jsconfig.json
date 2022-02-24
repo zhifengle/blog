@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "moduleResolution": "node",
+    // 设置 DOM 就会补全 DOM
+    // node补全需要安装 @types/node
+    "lib": [
+      "ESNext"
+    ],
+    "target": "ESNext"
+  },
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}
