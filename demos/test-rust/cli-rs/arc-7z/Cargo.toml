@@ -7,5 +7,3 @@ edition = "2021"
 
 [dependencies]
 clap="3"
-assert_cmd = "2"
-predicates = "2"
