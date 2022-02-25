@@ -1,9 +1,17 @@
 // https://imququ.com/post/web-proxy.html
 // https://github.com/qgy18/proxy-demo
 const http = require('http');
+const https = require('https');
 const net = require('net');
+const path = require('path');
+const fs = require('fs');
 
+const options = {
+  key: fs.readFileSync(path.join(__dirname, '../private.pem')),
+  cert: fs.readFileSync(path.join(__dirname, '../public.crt')),
+};
 const server = http.createServer();
+// const server = https.createServer(options);
 server.listen('8899', '0.0.0.0');
 server.on('request', (req, res) => {
   const url = new URL(req.url);
@@ -14,9 +22,7 @@ server.on('request', (req, res) => {
     method: req.method,
     headers: req.headers,
   };
-  console.log('request: ', req);
 
-  // ?? 页面重定向
   const serverReq = http
     .request(opt, (serverRes) => {
       res.writeHead(serverRes.statusCode, {
@@ -33,6 +39,23 @@ server.on('request', (req, res) => {
 
   req.pipe(serverReq);
 });
+
+function handleConnect(clientReq, clientSock) {
+  const url = new URL(clientReq.url);
+  const pipeSock = net
+    .connect(url.port, url.hostname, () => {
+      console.log('pipe socket request: ', pipeSock);
+      clientSock.write('HTTP/1.1 200 Connection Established\r\n\r\n');
+      pipeSock.pipe(clientSock);
+    })
+    .on('error', (e) => {
+      console.log(e);
+      clientSock.end();
+    });
+  clientSock.pipe(pipeSock);
+}
+
+server.on('connect', handleConnect);
 
 // 浏览器访问 http://localhost:3000
 // 注意 switch omega 设置
