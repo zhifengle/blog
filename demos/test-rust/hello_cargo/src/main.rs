@@ -7,6 +7,7 @@ mod combinators;
 mod iterator_demo;
 mod macro_demo;
 mod misc_fn;
+mod ownership_demo;
 mod poker_demo;
 mod sort;
 mod st_demo;
