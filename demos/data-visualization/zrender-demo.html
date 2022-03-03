@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>zrender demo</title>
+</head>
+
+<body>
+  <canvas id="main" width="600" height="600"></canvas>
+  <script src="https://cdn.bootcdn.net/ajax/libs/zrender/5.3.0/zrender.min.js"></script>
+  <script>
+    var zr = zrender.init(document.getElementById('main'));
+    var circle = new zrender.Circle({
+      shape: {
+        cx: 150,
+        cy: 50,
+        r: 40
+      },
+      style: {
+        fill: 'none',
+        stroke: '#F00'
+      }
+    });
+    zr.add(circle);
+    // zr.render();
+  </script>
+</body>
+
+</html>
