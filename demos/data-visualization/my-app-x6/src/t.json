@@ -1,0 +1,119 @@
+{
+  "cells": [
+    {
+      "position": {
+        "x": 60,
+        "y": 50
+      },
+      "size": {
+        "width": 120,
+        "height": 64
+      },
+      "shape": "rect",
+      "id": "e1a362f1-c8a1-440e-b2f7-8e427f8b988a",
+      "ports": {
+        "groups": {
+          "in": {
+            "attrs": {
+              "circle": {
+                "r": 6,
+                "magnet": true,
+                "stroke": "#31d0c6",
+                "strokeWidth": 2,
+                "fill": "#fff"
+              }
+            },
+            "position": "top"
+          },
+          "out": {
+            "attrs": {
+              "circle": {
+                "r": 6,
+                "magnet": true,
+                "stroke": "#31d0c6",
+                "strokeWidth": 2,
+                "fill": "#fff"
+              }
+            },
+            "position": "bottom"
+          }
+        },
+        "items": [
+          {
+            "id": "port-in",
+            "group": "in"
+          },
+          {
+            "id": "port-out",
+            "group": "out"
+          }
+        ]
+      },
+      "zIndex": 1
+    },
+    {
+      "position": {
+        "x": 160,
+        "y": 200
+      },
+      "size": {
+        "width": 120,
+        "height": 64
+      },
+      "shape": "rect",
+      "id": "daa1d59a-883e-4385-b9e2-fcf1a4dd3b87",
+      "ports": {
+        "groups": {
+          "in": {
+            "attrs": {
+              "circle": {
+                "r": 6,
+                "magnet": true,
+                "stroke": "#31d0c6",
+                "strokeWidth": 2,
+                "fill": "#fff"
+              }
+            },
+            "position": "top"
+          },
+          "out": {
+            "attrs": {
+              "circle": {
+                "r": 6,
+                "magnet": true,
+                "stroke": "#31d0c6",
+                "strokeWidth": 2,
+                "fill": "#fff"
+              }
+            },
+            "position": "bottom"
+          }
+        },
+        "items": [
+          {
+            "id": "port-in",
+            "group": "in"
+          },
+          {
+            "id": "port-out",
+            "group": "out"
+          }
+        ]
+      },
+      "zIndex": 2
+    },
+    {
+      "shape": "edge",
+      "id": "3fb12950-349b-4d30-961a-030ec81989f7",
+      "source": {
+        "cell": "e1a362f1-c8a1-440e-b2f7-8e427f8b988a",
+        "port": "port-out"
+      },
+      "target": {
+        "cell": "daa1d59a-883e-4385-b9e2-fcf1a4dd3b87",
+        "port": "port-in"
+      },
+      "zIndex": 3
+    }
+  ]
+}

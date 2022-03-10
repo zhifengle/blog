@@ -1,6 +1,7 @@
 import { Graph } from '@antv/x6';
 import React, { FC, useEffect, useRef, useState } from 'react';
 
+// https://x6.antv.vision/zh/examples/showcase/faq#validate-connection
 export interface IAppProps {}
 const portAttr = {
   circle: {
@@ -9,10 +10,11 @@ const portAttr = {
     stroke: '#31d0c6',
     strokeWidth: 2,
     fill: '#fff',
+    event: 'port:click',
   },
 };
 
-const App: FC<IAppProps> = () => {
+const Connecting: FC<IAppProps> = () => {
   const canvasRef = useRef(null);
   const [graph, setGraph] = useState<Graph>();
   useEffect(() => {
@@ -27,6 +29,28 @@ const App: FC<IAppProps> = () => {
             allowNode: false,
             allowEdge: false,
             allowPort: true,
+            // connector: 'rounded',
+            validateConnection({ targetView, targetMagnet, sourceMagnet }) {
+              if (!targetMagnet) {
+                return false;
+              }
+              // out 连接 in 否则无法连接
+              if (targetMagnet.getAttribute('port-group') !== 'in') {
+                return false;
+              }
+
+              if (targetView && sourceMagnet) {
+                const node = targetView.cell;
+                // 实体的 svg 节点
+                const portId = targetMagnet.getAttribute('port');
+                const srcPortId = sourceMagnet.getAttribute('port');
+                if (portId === srcPortId) {
+                  return false;
+                }
+              }
+
+              return true;
+            },
           },
         })
       );
@@ -53,11 +77,11 @@ const App: FC<IAppProps> = () => {
           },
           items: [
             {
-              id: 'port1',
+              id: 'port-in',
               group: 'in',
             },
             {
-              id: 'port5',
+              id: 'port-out',
               group: 'out',
             },
           ],
@@ -82,18 +106,22 @@ const App: FC<IAppProps> = () => {
           },
           items: [
             {
-              id: 'port1',
+              id: 'port-in',
               group: 'in',
             },
             {
-              id: 'port5',
+              id: 'port-out',
               group: 'out',
             },
           ],
         },
       });
       graph.zoomToFit({ padding: 10, maxScale: 1 });
-      console.log(graph.toJSON());
+      graph.on('edge:connected', (e: any) => {
+        // handle
+        console.log('eeeeee: ', e);
+      });
+      console.log(graph);
     }
   }, [graph]);
   return (
@@ -107,4 +135,4 @@ const App: FC<IAppProps> = () => {
   );
 };
 
-export default App;
+export default Connecting;
