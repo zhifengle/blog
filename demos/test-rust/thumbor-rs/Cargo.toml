@@ -1,0 +1,26 @@
+[package]
+name = "thumbor-rs"
+version = "0.1.0"
+edition = "2021"
+
+
+
+[dependencies]
+actix-web = "4"
+anyhow = "1" 
+base64 = "0.13" 
+bytes = "1" 
+image = "0.23" 
+lazy_static = "1" 
+lru = "0.6" 
+percent-encoding = "2" 
+photon-rs = "0.3" 
+prost = "0.9" 
+serde = { version = "1", features = ["derive"] }
+reqwest = { version = "0.11", features = ["json"] }
+tokio = { version = "1", features = ["full"] }
+tracing = "0.1" 
+tracing-subscriber = "0.2" 
+
+[build-dependencies]
+prost-build = "0.9"
