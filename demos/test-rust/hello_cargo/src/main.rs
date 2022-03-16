@@ -11,6 +11,7 @@ mod ownership_demo;
 mod poker_demo;
 mod sort;
 mod st_demo;
+mod types;
 mod vector_demo;
 
 fn main() {
