@@ -9,11 +9,4 @@ edition = "2018"
 rand = "*"
 
 [workspace]
-members = [
-    "hex-color",
-    "nom-demo",
-    "idioms",
-    "patterns",
-    "minigrep",
-    "algorithms",
-]
+members = [ "crates/*" ]
