@@ -6,6 +6,7 @@ mod cmd_demo;
 mod combinators;
 mod iterator_demo;
 mod macro_demo;
+mod memo_demo;
 mod misc_fn;
 mod ownership_demo;
 mod poker_demo;
