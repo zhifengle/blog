@@ -5,7 +5,7 @@ use std::collections::HashMap;
 
 struct Solution {}
 impl Solution {
-    pub fn longest_palindrome(s: String) -> String {
+    pub fn longest_palindrome(_s: String) -> String {
         todo!()
     }
 }
@@ -51,7 +51,7 @@ fn find(s: &Vec<char>, left: usize, right: usize, longest: &mut Vec<char>) -> Ve
 }
 
 pub fn longest_palindrome(s: String) -> String {
-    let (mut s, mut max) = (s.chars().collect::<Vec<char>>(), vec![]);
+    let (s, mut max) = (s.chars().collect::<Vec<char>>(), vec![]);
     fn find_max(s: &Vec<char>, max: Vec<char>, i: usize, j: usize) -> Vec<char> {
         let (mut i, mut j) = (i, j);
         let mut sub: &[char] = &[];
