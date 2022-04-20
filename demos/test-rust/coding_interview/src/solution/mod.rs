@@ -6,4 +6,5 @@ mod s0009_palindrome_number;
 mod s0011_container_with_most_water;
 mod s0014_longest_common_prefix;
 mod s0015_3sum;
+mod s0016_3sum_closest;
 mod s0028_implement_strstr;
