@@ -5,8 +5,8 @@ use std::collections::HashMap;
 
 struct Solution {}
 impl Solution {
-    pub fn longest_palindrome(_s: String) -> String {
-        todo!()
+    pub fn longest_palindrome(s: String) -> String {
+        window_solution(s)
     }
 }
 
@@ -72,12 +72,12 @@ pub fn longest_palindrome(s: String) -> String {
     max.into_iter().collect()
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test() {
-        assert_eq!(longest_palindrome("babad".to_string()), "bab".to_string());
-    }
+#[test]
+fn test_5() {
+    assert_eq!(Solution::longest_palindrome("aaaaa".to_owned()), "aaaaa");
+    assert_eq!(Solution::longest_palindrome("babab".to_owned()), "babab");
+    assert_eq!(Solution::longest_palindrome("babcd".to_owned()), "bab");
+    assert_eq!(Solution::longest_palindrome("cbbd".to_owned()), "bb");
+    assert_eq!(Solution::longest_palindrome("bb".to_owned()), "bb");
+    assert_eq!(Solution::longest_palindrome("".to_owned()), "");
 }
