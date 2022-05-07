@@ -43,11 +43,14 @@ function genFunctionBody(
       if (types.isIdentifier(p)) {
         ident = p;
       } else if (types.isAssignmentPattern(p)) {
+        // function({ a } = { a: 1 }) { }
+        // 对应的ast:  left ObjectPattern; right: ObjectExpression;
+        // 这种情况下 ident.name 是空的. 暂时没有处理这种代码。types.stringLiteral 报错
         ident = p.left as types.Identifier;
       } else if (types.isRestElement(p)) {
         ident = p.argument as types.Identifier;
       } else {
-        // 未知的类型跳过比如 function({a} = {a: 1}) {}
+        // 未知的类型跳过
         return;
       }
       return types.expressionStatement(

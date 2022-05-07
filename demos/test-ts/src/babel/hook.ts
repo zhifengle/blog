@@ -19,6 +19,8 @@ export function hookDebugger(fn: Function) {
 export function hookDefault(window: Window & typeof globalThis) {
   // 在油猴脚本里面是 unsafeWindow
   // 这里是 iife 么 ??
+
+  // 和下面的重复了
   var ctor = window.Function.prototype.constructor;
   window.Function.prototype.constructor = hookDebugger(ctor);
   // @ts-ignore
@@ -96,6 +98,38 @@ export function hookDefault(window: Window & typeof globalThis) {
         hookDefault.call(newV, newV);
       }
       return newV;
+    },
+  });
+}
+// https://2ality.com/2016/11/proxying-builtins.html
+// blog 里面讲了一些不能透明代理的情况
+
+export function noopMethod(obj: any, methodName: string) {
+  function noop() {}
+  return new Proxy(obj, {
+    get: function (target, outerProp, reciever) {
+      if (outerProp === methodName) {
+        // 能够
+        return new Proxy(noop, {
+          get(target, prop, reciever) {
+            const property = Reflect.get(obj, outerProp)[prop];
+            if (typeof property === 'function') {
+              // 需要 bind this.
+              return property.bind(Reflect.get(obj, outerProp));
+            } else {
+              return property;
+            }
+            // 上面是任何属性或者原型链的调用方法都是使用的原来的. 下面的代码是判断了值
+            // 调用 name toString 返回原来的方法的值
+            // const inherits = ['name', 'toString', 'toLocaleString'];
+            // if (inherits.some((s) => s === prop)) {
+            // } else {
+            //   return Reflect.get(noop, prop);
+            // }
+          },
+        });
+      }
+      return obj[outerProp];
     },
   });
 }

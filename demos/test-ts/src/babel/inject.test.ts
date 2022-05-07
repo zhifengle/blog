@@ -44,4 +44,19 @@ describe('FunctionDeclaration', () => {
       `function test(a,b=1){e_user_hook("a",a,"function-parameter");e_user_hook("b",b,"function-parameter");console.log(a,b)}`
     );
   });
+  test('ObjectPattern', () => {
+    // 这种语法还没有处理 2022-05-06
+    var code = `function test({a} = {a: 1}) {
+  console.log(a);
+}`;
+    console.log(inject(code, { minified: true }));
+  });
+  test('RestElement', () => {
+    var code = `function test(...args) {
+  console.log(a);
+}`;
+    expect(inject(code, { minified: true })).toBe(
+      `function test(...args){e_user_hook("args",args,"function-parameter");console.log(a)}`
+    );
+  });
 });
