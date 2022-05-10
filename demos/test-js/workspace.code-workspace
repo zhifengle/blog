@@ -1,0 +1,14 @@
+{
+  "folders": [
+    // {
+    // 	"path": "."
+    // },
+    {
+      "path": "packages\\vue3"
+    },
+    {
+      "path": "packages\\node"
+    }
+  ],
+  "settings": {}
+}
