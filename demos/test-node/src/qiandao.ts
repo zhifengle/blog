@@ -113,8 +113,8 @@ function getSignResult(site: string, numOfDays?: number): boolean {
 }
 
 function genUrl(href: string, pathname: string) {
-  const url = new URL(href);
-  return `${url.origin}/${pathname}`;
+  const url = new URL(pathname, href);
+  return url.href;
 }
 
 const siteDict: SiteConfig[] = [
@@ -342,6 +342,40 @@ const siteDict: SiteConfig[] = [
       }
     },
   },
+  {
+    name: 'kafan',
+    href: 'https://bbs.kafan.cn/',
+    async signFn() {
+      if (getSignResult(this.name)) {
+        logger.info(`${this.name} 已签到`);
+        return;
+      }
+      const content = await fetchText(this.href, {
+        decode: 'gbk',
+      });
+
+      if (content.includes('快速登录')) {
+        logger.error(`${this.name} 需要登录`);
+        return;
+      }
+      const $doc = getDocObj(content);
+      const $signBtn = $doc.querySelector('#pper_a') as HTMLAnchorElement;
+      const src =
+        ($signBtn.querySelector('.qq_bind') as HTMLImageElement)?.src || '';
+      if (src.endsWith('wb.png')) {
+        setSignResult(this.name, true);
+        return;
+      }
+      if ($signBtn) {
+        const checkRes = await fetchText(genUrl(this.href, $signBtn.href), {
+          decode: 'gbk',
+        });
+        setSignResult(this.name, true);
+      } else {
+        logger.error(`${this.name} 签到失败。没有签到按钮`);
+      }
+    },
+  },
 ];
 async function main() {
   for (let i = 0; i < siteDict.length; i++) {
@@ -350,7 +384,7 @@ async function main() {
       continue;
     }
     // for test
-    // if (obj.name === '2djgame') {
+    // if (obj.name === 'kafan') {
     //   await obj.signFn();
     //   return;
     // }
