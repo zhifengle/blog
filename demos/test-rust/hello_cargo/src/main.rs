@@ -4,6 +4,7 @@ mod enum_demo;
 // 迭代器
 mod cmd_demo;
 mod combinators;
+mod data_demo;
 mod iterator_demo;
 mod macro_demo;
 mod memo_demo;
