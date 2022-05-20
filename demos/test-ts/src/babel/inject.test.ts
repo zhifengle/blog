@@ -17,7 +17,20 @@ describe('VariableDeclaration', () => {
   console.log(a, b);
 };
     `;
-    // expect(inject(code)).toBe(String);
+    expect(inject(code, { minified: true })).toBe(
+      'var x=function test(a,b){e_user_hook("a",a,"function-parameter");e_user_hook("b",b,"function-parameter");console.log(a,b)};'
+    );
+  });
+  // @TODO
+  test('init ArrowFunctionExpression', () => {
+    let code = `
+    var x = (a, b) => {
+  console.log(a, b);
+};
+    `;
+    // expect(inject(code, { minified: true })).toBe(
+    //   'var x=function test(a,b){e_user_hook("a",a,"function-parameter");e_user_hook("b",b,"function-parameter");console.log(a,b)};'
+    // );
   });
 });
 

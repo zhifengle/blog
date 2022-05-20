@@ -2,7 +2,7 @@ import { parse, ParseResult, traverse } from '@babel/core';
 import template from '@babel/template';
 import generate, { GeneratorOptions } from '@babel/generator';
 import * as types from '@babel/types';
-import { CallExpression, Expression } from '@babel/types';
+import type { CallExpression, Expression } from '@babel/types';
 
 export type HookCallType =
   | 'var-init'
@@ -80,8 +80,15 @@ export function genHookAST(code: string): ParseResult {
         if (!variableDeclarator.init) {
           continue;
         }
-        // 跳过 var x = () => {}
+        // 跳过 var x = (a, b) => a + b;
         if (types.isFunctionExpression(variableDeclarator.init)) {
+          try {
+            variableDeclarator.init.body = genFunctionBody(
+              variableDeclarator.init
+            );
+          } catch (e) {
+            console.error(e);
+          }
           continue;
         }
         // MemberExpression
