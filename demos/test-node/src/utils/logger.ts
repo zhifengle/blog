@@ -4,7 +4,7 @@ import { createLogger, format, transports } from 'winston';
 
 const { combine, timestamp, label, printf } = format;
 
-const myFormat = printf(({ level, message, label, timestamp }) => {
+const myFormat = printf(({ level, message, label, timestamp }: any) => {
   return `${timestamp} [${label}] ${level}: ${message}`;
 });
 
@@ -27,6 +27,7 @@ export function loggerFactory(
     transports: [
       new transports.File({
         filename: path.join(logsPath, `${name}-error.log`),
+        // @ts-ignore
         level: 'error',
       }),
       new transports.File({
