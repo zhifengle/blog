@@ -1,14 +1,5 @@
-// @ts-ignore
-class ListNode {
-  val: number;
-  next: ListNode | null;
-  constructor(val?: number, next?: ListNode | null) {
-    this.val = val === undefined ? 0 : val;
-    this.next = next === undefined ? null : next;
-  }
-}
+import { ListNode } from '../list-node';
 
-// @ts-ignore
 function mergeTwoLists(
   list1: ListNode | null,
   list2: ListNode | null
@@ -34,4 +25,21 @@ function mergeTwoLists(
     head = head.next;
   }
   return dummyHead.next;
+}
+
+function mergeKLists(lists: Array<ListNode | null>): ListNode | null {
+  if (lists.length === 0) {
+    return null;
+  }
+  if (lists.length === 1) {
+    return lists[0];
+  }
+  if (lists.length === 2) {
+    return mergeTwoLists(lists[0], lists[1]);
+  }
+  const mid = lists.length >> 1;
+  // ?? 可以传索引优化一些内存。
+  const l1 = lists.slice(0, mid);
+  const l2 = lists.slice(mid, lists.length);
+  return mergeTwoLists(mergeKLists(l1), mergeKLists(l2));
 }
