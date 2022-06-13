@@ -37,3 +37,4 @@ debug/
 *.exe
 *.out
 *.pdb
+*.lock
