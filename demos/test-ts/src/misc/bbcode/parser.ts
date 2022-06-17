@@ -1,12 +1,9 @@
-import { Lexer } from './lexer';
-import { EOF, TokenType } from './types';
-
 const INVALID_NODE_MSG = 'invalid node';
+const INVALID_STICKER_NODE = 'invalid sticker node';
 
 export const BBCODE_REGEXP = /^\[([a-z]+)(=.+?)?\](.+?)\[\/([a-z]+)\]/;
 
 type CheckCharFn = (str: string) => boolean;
-type AttrMap = Record<string, string>;
 
 export type VNode = {
   type: string;
@@ -16,76 +13,73 @@ export type VNode = {
 
 export type NodeTypes = string | VNode;
 
-const OPEN_CHARS = ['(', '['];
-const END_CHARS = [')', ']', '='];
-
 export class Parser {
   private pos: number;
-  // 记录当前解析节点的开始
-  private start: number;
+  // 记录上下文
+  private ctxStack: { startIdx: number }[];
   constructor(private readonly input: string) {
     this.pos = 0;
-    this.start = 0;
+    this.ctxStack = [];
   }
   parseNodes(): NodeTypes[] {
     const nodes: NodeTypes[] = [];
-    while (!this.eof()) {
-      let node: NodeTypes;
-      try {
-        node = this.parseNode();
-      } catch (error) {
-        if (error.message === INVALID_NODE_MSG) {
-          node = this.input.slice(this.start, this.pos);
-          this.start = this.pos;
-        }
+    while (true) {
+      if (this.eof() || this.startsWith('[/')) {
+        break;
       }
-      if (node) {
-        if (typeof node !== 'string') {
-          node && nodes.push(node);
-        } else {
-          const prevNode = nodes[nodes.length - 1];
-          if (typeof prevNode === 'string') {
-            nodes[node.length - 1] = prevNode + node;
-          } else {
-            node && nodes.push(node);
-          }
-        }
-      }
+      nodes.push(this.parseNode());
     }
     return nodes;
   }
   parseNode(): NodeTypes {
     this.enterNode();
-    switch (this.curChar()) {
-      case '(':
-        return this.parseStickerNode();
-      case '[':
-        return this.parseBBCodeNode();
-      default:
-        return this.parseText();
+    let node: NodeTypes;
+    try {
+      switch (this.curChar()) {
+        case '(':
+          node = this.parseStickerNode();
+          break;
+        case '[':
+          node = this.parseBBCodeNode();
+          break;
+        default:
+          node = this.parseText();
+      }
+      this.exitNode();
+    } catch (error) {
+      // console.log(this.input.slice(this.pos), this.curChar());
+      // console.log(error);
+      if (
+        error.message === INVALID_NODE_MSG ||
+        error.message === INVALID_STICKER_NODE
+      ) {
+        const ctx = this.ctxStack.pop();
+        node = this.input.slice(ctx.startIdx, this.pos);
+      }
     }
+    return node;
   }
-  // (bgm38)
+  // 解析 (bgm38) (bgm1)
   parseStickerNode(): NodeTypes {
-    // if (!this.startsWith('(bgm')) {
-    //   throw new Error(INVALID_NODE_MSG);
-    // }
-    // this.pos += 4;
-    this.validateStartStr('(bgm');
+    this.consumeChar();
+    if (!this.startsWith('bgm')) {
+      throw new Error(INVALID_STICKER_NODE);
+    }
+    this.pos += 3;
     const id = this.consumeWhile((c) => !isNaN(+c));
     if (!id) {
-      throw new Error(INVALID_NODE_MSG);
+      throw new Error(INVALID_STICKER_NODE);
     }
     const c = this.consumeChar();
     if (c !== ')') {
-      throw new Error(INVALID_NODE_MSG);
+      throw new Error(INVALID_STICKER_NODE);
     }
     return {
       type: 'img',
       props: {
         'sticker-id': id,
-        smileid: id,
-        alt: `(bgm${id})`,
+        // smileid: id,
+        // alt: `(bgm${id})`,
       },
     };
   }
@@ -93,7 +87,7 @@ export class Parser {
     let str = '';
     return str;
   }
-  // @TODO 暂时只支持 Bangumi 的 bbcode
+  // @TODO 暂时只支持 Bangumi 的 bbcode; 不支持 [style size="30px"]Large Text[/style]
   parseBBCodeNode(): NodeTypes {
     let c = this.consumeChar();
     const openTag = this.parseTagName();
@@ -106,28 +100,9 @@ export class Parser {
       prop = this.consumeWhile((c) => c !== ']');
       c = this.consumeChar();
     }
-    // let closeTagIdx = this.input.slice(this.pos).lastIndexOf(`[/${openTag}]`);
-    // if (closeTagIdx === -1) {
-    //   throw new Error(INVALID_NODE_MSG);
-    // }
-    // closeTagIdx += this.pos;
-    // let childrenStr = this.input.slice(this.pos, closeTagIdx);
-    // this.pos += childrenStr.length;
+    let children = this.parseNodes();
 
-    // let closeTagIdx = this.input.indexOf(`[/${openTag}]`, this.pos);
-    // if (closeTagIdx === -1) {
-    //   // throw new Error(INVALID_NODE_MSG);
-    //   this.pos = this.input.length;
-    //   return this.input.slice(this.start);
-    // }
-    // let childrenStr = this.input.slice(this.pos, closeTagIdx);
-    // this.pos += childrenStr.length;
-
-    let childrenStr = this.consumeWhile((c) => c !== '[');
-    // 使用当前对象有问题。暂时采取 new 一个对象
-    const children = new Parser(childrenStr).parseNodes();
-    this.validateStartStr('[');
-    this.validateStartStr('/');
+    this.validateStartStr('[/');
     const closeTag = this.parseTagName();
     if (openTag !== closeTag) {
       throw new Error(INVALID_NODE_MSG);
@@ -190,9 +165,13 @@ export class Parser {
     return this.pos >= this.input.length;
   }
   enterNode() {
-    this.start = this.pos;
+    this.ctxStack.push({
+      startIdx: this.pos,
+    });
   }
-  exitNode() {}
+  exitNode() {
+    this.ctxStack.pop();
+  }
   validateStartStr(str: string): boolean {
     let count = 0;
     while (count < str.length) {

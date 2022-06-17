@@ -1,6 +1,4 @@
-import { Lexer } from '../lexer';
-import { BBCODE_REGEXP, Parser, VNode, NodeTypes } from '../parser';
-import { TokenType } from '../types';
+import { BBCODE_REGEXP, Parser, NodeTypes } from '../parser';
 
 function getNodes(input: string): NodeTypes[] {
   const p = new Parser(input);
@@ -38,8 +36,8 @@ describe('bbcode parser', () => {
         type: 'img',
         props: {
           'sticker-id': id,
-          smileid: id,
-          alt: `(bgm${id})`,
+          // smileid: id,
+          // alt: `(bgm${id})`,
         },
       },
     ];
@@ -82,8 +80,8 @@ describe('bbcode parser', () => {
   });
   test('invalid bbcode', () => {
     const input = `[ba]bgm[/b](bg38)`;
-    const tests: NodeTypes[] = [input];
-    expect(getNodes(input)).toEqual(expect.arrayContaining(tests));
+    // const input = `[b]bgm[url]sss[/ual][/b](bg38)`;
+    expect(getNodes(input).join('')).toEqual(input);
   });
   test('img bbcode', () => {
     const input = `存放于其他网络服务器的图片：
@@ -165,12 +163,13 @@ describe('bbcode parser', () => {
     expect(getNodes(input)).toEqual(expect.arrayContaining(tests));
   });
   test('nest bbcode', () => {
-    const input = `[color=green][size=16]更新：[/size][/color]`;
+    const input = `[color=green]nest[size=16]更新：[/size][/color]`;
     const tests: NodeTypes[] = [
       {
         type: 'color',
         props: { color: 'green' },
         children: [
+          'nest',
           {
             type: 'size',
             props: {
