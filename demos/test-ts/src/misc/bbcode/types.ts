@@ -19,11 +19,3 @@ export type TokenType =
   | typeof LINE_BREAK
   | typeof SLASH
   | typeof EOF;
-
-export type VNode = {
-  type: string;
-  props?: Record<string, string>;
-  children?: VNode[];
-};
-
-export type VNodeTypes = string | VNode;
