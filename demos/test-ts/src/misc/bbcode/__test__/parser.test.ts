@@ -1,6 +1,7 @@
-import { BBCODE_REGEXP, Parser, NodeTypes } from '../parser';
+import { BBCODE_REGEXP, Parser } from '../parser';
+import { CodeNodeTypes } from '../types';
 
-function getNodes(input: string): NodeTypes[] {
+function getNodes(input: string): CodeNodeTypes[] {
   const p = new Parser(input);
   return p.parseNodes();
 }
@@ -25,19 +26,18 @@ describe('bbcode parser', () => {
   });
   test('text', () => {
     const input = `啊aあ\n)`;
-    const tests: NodeTypes[] = [input];
+    const tests: CodeNodeTypes[] = [input];
     expect(getNodes(input)).toEqual(expect.arrayContaining(tests));
   });
   test('bangumi sticker', () => {
     const input = `(bgm38)`;
     const id = '38';
-    const tests: NodeTypes[] = [
+    const tests: CodeNodeTypes[] = [
       {
         type: 'img',
         props: {
-          'sticker-id': id,
-          // smileid: id,
-          // alt: `(bgm${id})`,
+          smileid: id,
+          alt: `(bgm${id})`,
         },
       },
     ];
@@ -47,7 +47,7 @@ describe('bbcode parser', () => {
     const input = `[b]bgm[/b]`;
     // const input2 = `[url=http://chii.in]bgm[/url]`;
     // const input3 = ` [url]http://chii.in/[/url]`;
-    const tests: NodeTypes[] = [
+    const tests: CodeNodeTypes[] = [
       {
         type: 'b',
         children: ['bgm'],
@@ -57,7 +57,7 @@ describe('bbcode parser', () => {
   });
   test('url bbcode', () => {
     const input = `[url=http://chii.in]bgm[/url]`;
-    const tests: NodeTypes[] = [
+    const tests: CodeNodeTypes[] = [
       {
         type: 'url',
         props: {
@@ -70,7 +70,7 @@ describe('bbcode parser', () => {
   });
   test('url bbcode; type 2', () => {
     const input = ` [url]http://chii.in/[/url]`;
-    const tests: NodeTypes[] = [
+    const tests: CodeNodeTypes[] = [
       {
         type: 'url',
         children: ['http://chii.in/'],
@@ -86,7 +86,7 @@ describe('bbcode parser', () => {
   test('img bbcode', () => {
     const input = `存放于其他网络服务器的图片：
 [img]http://chii.in/img/ico/bgm88-31.gif[/img]`;
-    const tests: NodeTypes[] = [
+    const tests: CodeNodeTypes[] = [
       '存放于其他网络服务器的图片：\n',
       {
         type: 'img',
@@ -103,7 +103,7 @@ describe('bbcode parser', () => {
 [b]粗体字[/b]
 [color=red]彩[/color][color=green]色[/color][color=blue]的[/color][color=orange]哟[/color]
 `;
-    const tests: NodeTypes[] = [
+    const tests: CodeNodeTypes[] = [
       '我是',
       {
         type: 'mask',
@@ -164,7 +164,7 @@ describe('bbcode parser', () => {
   });
   test('nest bbcode', () => {
     const input = `[color=green]nest[size=16]更新：[/size][/color]`;
-    const tests: NodeTypes[] = [
+    const tests: CodeNodeTypes[] = [
       {
         type: 'color',
         props: { color: 'green' },
@@ -184,7 +184,7 @@ describe('bbcode parser', () => {
   });
   test('nest same bbcode', () => {
     const input = `[color=green][color=blue]更新：[/color][/color]`;
-    const tests: NodeTypes[] = [
+    const tests: CodeNodeTypes[] = [
       {
         type: 'color',
         props: { color: 'green' },

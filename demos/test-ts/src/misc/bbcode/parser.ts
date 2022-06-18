@@ -1,17 +1,11 @@
+import { CodeNodeTypes } from './types';
+
 const INVALID_NODE_MSG = 'invalid node';
 const INVALID_STICKER_NODE = 'invalid sticker node';
 
 export const BBCODE_REGEXP = /^\[([a-z]+)(=.+?)?\](.+?)\[\/([a-z]+)\]/;
 
 type CheckCharFn = (str: string) => boolean;
-
-export type VNode = {
-  type: string;
-  props?: Record<string, string>;
-  children?: NodeTypes[];
-};
-
-export type NodeTypes = string | VNode;
 
 export class Parser {
   private pos: number;
@@ -21,8 +15,8 @@ export class Parser {
     this.pos = 0;
     this.ctxStack = [];
   }
-  parseNodes(): NodeTypes[] {
-    const nodes: NodeTypes[] = [];
+  parseNodes(): CodeNodeTypes[] {
+    const nodes: CodeNodeTypes[] = [];
     while (true) {
       if (this.eof() || this.startsWith('[/')) {
         break;
@@ -31,9 +25,9 @@ export class Parser {
     }
     return nodes;
   }
-  parseNode(): NodeTypes {
+  parseNode(): CodeNodeTypes {
     this.enterNode();
-    let node: NodeTypes;
+    let node: CodeNodeTypes;
     try {
       switch (this.curChar()) {
         case '(':
@@ -60,7 +54,7 @@ export class Parser {
     return node;
   }
   // 解析 (bgm38) (bgm1)
-  parseStickerNode(): NodeTypes {
+  parseStickerNode(): CodeNodeTypes {
     this.consumeChar();
     if (!this.startsWith('bgm')) {
       throw new Error(INVALID_STICKER_NODE);
@@ -77,18 +71,13 @@ export class Parser {
     return {
       type: 'img',
       props: {
-        'sticker-id': id,
-        // smileid: id,
-        // alt: `(bgm${id})`,
+        smileid: id,
+        alt: `(bgm${id})`,
       },
     };
   }
-  parseTextNode(): NodeTypes {
-    let str = '';
-    return str;
-  }
   // @TODO 暂时只支持 Bangumi 的 bbcode; 不支持 [style size="30px"]Large Text[/style]
-  parseBBCodeNode(): NodeTypes {
+  parseBBCodeNode(): CodeNodeTypes {
     let c = this.consumeChar();
     const openTag = this.parseTagName();
     c = this.consumeChar();
@@ -108,7 +97,7 @@ export class Parser {
       throw new Error(INVALID_NODE_MSG);
     }
     this.validateStartStr(']');
-    const n: NodeTypes = {
+    const n: CodeNodeTypes = {
       type: openTag,
       children,
     };
