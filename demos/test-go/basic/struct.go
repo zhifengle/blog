@@ -7,6 +7,13 @@ type person struct {
 	age  int
 }
 
+// 序列化的时候为 name
+// https://stackoverflow.com/questions/10858787/what-are-the-uses-for-tags-in-go
+
+type User struct {
+	Name string `json:"name" xml:"name"`
+}
+
 func Older(p1, p2 person) person {
 	if p1.age > p2.age {
 		return p1

@@ -19,7 +19,8 @@ import (
 // https://github.com/go-resty/resty    4k star
 // https://github.com/parnurzeal/gorequest   2k star
 
-// https://github.com/iawia002/annie/blob/master/request/request.go
+// 原名 annie
+// https://github.com/iawia002/lux/blob/master/request/request.go
 // 使用的内部变量来设置 Request 的一些参数
 
 // 新增一个全局变量
@@ -28,6 +29,24 @@ var proxyUrl string
 func SetProxy(url string) {
 	proxyUrl = url
 }
+
+var defaultHeaders = map[string]string{
+	"Accept":          "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+	"Accept-Charset":  "UTF-8,*;q=0.5",
+	"Accept-Encoding": "gzip,deflate,sdch",
+	"Accept-Language": "en-US,en;q=0.8",
+	"User-Agent":      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.81 Safari/537.36",
+}
+
+// post url form; application/x-www-form-urlencoded
+// netURL.QueryEscape(str)   // 转义字符
+// payload := strings.NewReader(postData)
+// res, err := request.Request(http.MethodPost, APIURL, payload, headers)
+
+// post json; application/json
+//values := map[string]string{"username": username, "password": password}
+//jsonValue, _ := json.Marshal(values)
+// bytes.NewBuffer(jsonValue)
 
 func Request(method string, url string, body io.Reader, headers map[string]string) (*http.Response, error) {
 	// body 传 json 时
@@ -58,7 +77,9 @@ func Request(method string, url string, body io.Reader, headers map[string]strin
 	if err != nil {
 		return nil, err
 	}
-	// TODO set default headers
+	for k, v := range defaultHeaders {
+		req.Header.Set(k, v)
+	}
 	for k, v := range headers {
 		req.Header.Set(k, v)
 	}
