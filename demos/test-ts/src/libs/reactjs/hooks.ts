@@ -1,4 +1,4 @@
-import { Func } from "../types";
+import { Func } from '../../types';
 
 let memorizedStated: any[] = [];
 let cursor: number = 0;

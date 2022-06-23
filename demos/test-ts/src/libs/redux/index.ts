@@ -1,4 +1,4 @@
-import { Func } from "../types";
+import { Func } from '../../types';
 
 interface IState {
   [prop: string]: any;
@@ -35,7 +35,7 @@ function createStore(
   return {
     dispatch,
     subscribe,
-    getState
+    getState,
     // replaceReducer,
     // observable
   };
