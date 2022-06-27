@@ -22,6 +22,7 @@
     "jsdom": "^19.0.0",
     "moment": "^2.29.3",
     "moment-timezone": "^0.5.34",
+    "puppeteer-core": "^15.1.1",
     "serve-handler": "^6.1.3",
     "winston": "^3.7.2"
   },
