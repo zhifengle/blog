@@ -9,6 +9,16 @@ const fs = require('fs');
 // const targetDir = String.raw`D:\music`;
 const excludes = ['done'];
 
+function genWinrarCmd(outputPath, targetPath, pw) {
+  const exePath = String.raw`D:\Program Files\WinRAR\WinRAR.exe`;
+  // 加密文件名称 -hp
+  // -ep1 只保留文件夹名字
+  return `"${exePath}" a -v3.8g -r -rr3p -hp${pw} -ep1 "${outputPath}" "${targetPath}"`;
+}
+function gen7zCmd(outputPath, targetPath, pw) {
+  return `7z a "${outputPath}.7z" -mhe -p${pw} "${targetPath}"`;
+}
+
 async function run(args) {
   const { targetDir, outputDir, pw } = args;
   try {
@@ -21,14 +31,15 @@ async function run(args) {
         const p = path.join(targetDir, dirent.name);
         const outputPath = path.join(outputDir, dirent.name);
         // 命令存在空格需要使用引号; 可以换成 outputPath; -pXX 密码
-        const s = `7z a "${outputPath}.7z" -mhe -p${pw} "${p}"`;
+        // const s = `7z a "${outputPath}.7z" -mhe -p${pw} "${p}"`;
+        const s = genWinrarCmd(outputPath, p, pw);
         console.log('Start: ', p);
         // stdout 乱码参考下面
         const { stderr } = await exec(s);
         if (stderr) {
           console.log(stderr);
         } else {
-          console.log('Ok:', outputPath + '.7z');
+          console.log('Ok:', outputPath);
         }
       }
     }
@@ -62,7 +73,7 @@ function parseArgs(argv) {
 }
 
 // 压缩目标文件夹里面的文件夹
-// node  7z-arc.js  -p xxx  c:\
+// node  archive.js  -p xxx  c:\
 const args = parseArgs(process.argv.slice(2));
 if (!args) {
   process.exit(1);

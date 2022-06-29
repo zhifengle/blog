@@ -1,7 +1,10 @@
 {
   "name": "@test-js/node",
   "version": "1.0.0",
-  "description": "",
+  "description": "some cli tools",
+  "bin": {
+    "js-archive": "./bin/archive"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
