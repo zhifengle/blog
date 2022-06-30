@@ -14,3 +14,4 @@ web-ext-artifacts
 site.json
 *.txt
 src/work/*
+/data
