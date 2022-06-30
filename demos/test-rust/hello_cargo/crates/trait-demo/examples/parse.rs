@@ -4,6 +4,7 @@ trait Parse {
     fn parse(s: &str) -> Self;
 }
 
+// xx_opt.map_or(0, |x| x)
 impl Parse for u8 {
     fn parse(s: &str) -> Self {
         let re = Regex::new(r"^[0-9]+").unwrap();
