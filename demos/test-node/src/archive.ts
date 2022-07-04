@@ -67,6 +67,7 @@ program
   .option('-v, --volume <type>', 'volume size')
   .option('-t, --type <type>', 'compress type, rar or 7z', 'rar')
   .option('-e, --encryption', 'encrypt name')
+  .option('-s, --single', 'compress target folder')
   .option('-x, --exclude-dirs [dirs...]', 'exclude dirs')
   .argument('<target>', 'target folder')
   .argument('[output]', 'output folder')
@@ -80,36 +81,62 @@ program
       } else {
         type = '7z';
       }
-      for await (const dirent of await opendir(target)) {
-        if (
-          isTargetDirectory(dirent.name, options.targetDirs) &&
-          dirent.isDirectory()
-        ) {
-          let name = dirent.name;
-          if (options.encryption) {
-            name = getOutputName(name);
+      if (!output) {
+        output = target;
+      }
+      let excludeDirs = options.excludeDirs;
+      if (options.single) {
+        let outputName = path.basename(target);
+        if (options.encryption) {
+          outputName = getOutputName(outputName);
+        }
+        const targetPath = target;
+        const outputPath = path.join(target, '..', outputName);
+        const config: CompressConfig = {
+          outputPath,
+          targetPath,
+          password: options.password,
+          volume: options.volume,
+        };
+        let s = '';
+        if (type === 'rar') {
+          s = genWinrarCmd(config);
+        } else {
+          s = gen7zCmd(config);
+        }
+        console.log('Start to compress target folder: ', targetPath);
+        await execPromise(s);
+        archiveNameMap.set(outputName, path.basename(target));
+        console.log('Output:', outputPath + '.' + type);
+      } else {
+        for await (const dirent of await opendir(target)) {
+          if (
+            isTargetDirectory(dirent.name, excludeDirs) &&
+            dirent.isDirectory()
+          ) {
+            let name = dirent.name;
+            if (options.encryption) {
+              name = getOutputName(name);
+            }
+            const targetPath = path.join(target, dirent.name);
+            const outputPath = path.join(output, name);
+            const config: CompressConfig = {
+              outputPath,
+              targetPath,
+              password: options.password,
+              volume: options.volume,
+            };
+            let s = '';
+            if (type === 'rar') {
+              s = genWinrarCmd(config);
+            } else {
+              s = gen7zCmd(config);
+            }
+            console.log('Start: ', targetPath);
+            await execPromise(s);
+            archiveNameMap.set(name, dirent.name);
+            console.log('Output:', outputPath + '.' + type);
           }
-          if (!output) {
-            output = target;
-          }
-          const targetPath = path.join(target, dirent.name);
-          const outputPath = path.join(output, name);
-          const config: CompressConfig = {
-            outputPath,
-            targetPath,
-            password: options.password,
-            volume: options.volume,
-          };
-          let s = '';
-          if (type === 'rar') {
-            s = genWinrarCmd(config);
-          } else {
-            s = gen7zCmd(config);
-          }
-          console.log('Start: ', targetPath);
-          await execPromise(s);
-          archiveNameMap.set(name, dirent.name);
-          console.log('Output:', outputPath + '.' + type);
         }
       }
       if (options.encryption) {
