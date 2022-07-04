@@ -6,36 +6,42 @@ import { Command } from 'commander';
 import { opendir } from 'fs/promises';
 import path from 'path';
 import fs from 'fs';
-import { getUserSiteConfig } from './utils/site-config';
 import { encodeBase64 } from './utils/crypto';
 
 const execPromise = util.promisify(exec);
-const excludes = ['done'];
 const archiveNameMap = new Map<string, string>();
 const homedir = require('os').homedir();
 const WINRAR_PATH = String.raw`D:\Program Files\WinRAR\WinRAR.exe`;
-
-let USER_CONFIG: any = {};
 
 type CompressConfig = {
   outputPath: string;
   targetPath: string;
   password: string;
+  volume?: string;
 };
 
 function genWinrarCmd(config: CompressConfig) {
+  const { outputPath, targetPath, password, volume } = config;
+  let vol = '';
+  if (volume) {
+    vol = `-v${volume}`;
+  }
   // 加密文件名称 -hp
   // -ep1 只保留文件夹名字
-  return `"${WINRAR_PATH}" a -v3.8g -r -rr3p -hp${config.password} -ep1 "${config.outputPath}" "${config.targetPath}"`;
+  // -v3.8g 分卷 3.8g
+  return `"${WINRAR_PATH}" a ${vol} -r -rr3p -hp${password} -ep1 "${outputPath}" "${targetPath}"`;
 }
 function gen7zCmd(config: CompressConfig) {
-  const { outputPath, targetPath, password } = config;
-  return `7z a "${outputPath}.7z" "${targetPath}" -v3.8g -mhe -p${password}`;
+  const { outputPath, targetPath, password, volume } = config;
+  // 3892m; 7z 不支持小数点分卷
+  let vol = '';
+  if (volume) {
+    vol = `-v${volume}`;
+  }
+  return `7z a "${outputPath}.7z" "${targetPath}" ${vol} -mhe -p${password}`;
 }
 
 function getOutputName(name: string): string {
-  // const ARCHIVE_NAME_KEY = 'archive-name-key';
-  // return encryptAesEcb(name, USER_CONFIG[ARCHIVE_NAME_KEY]);
   return encodeBase64(name).replace(/\//g, '_').replace(/\+/g, '-');
 }
 
@@ -50,17 +56,22 @@ function outputNameMap() {
   execSync(`C:\\Windows\\System32\\notepad.exe ${file}`);
 }
 
+function isTargetDirectory(name: string, excludeDirs = ['done']): boolean {
+  return !excludeDirs.some((dir) => name.includes(dir));
+}
+
 const program = new Command('archive');
 program.version('0.0.1').description('archive folder');
 program
   .requiredOption('-p, --password <type>', 'password')
+  .option('-v, --volume <type>', 'volume size')
   .option('-t, --type <type>', 'compress type, rar or 7z', 'rar')
   .option('-e, --encryption', 'encrypt name')
+  .option('-x, --exclude-dirs [dirs...]', 'exclude dirs')
   .argument('<target>', 'target folder')
   .argument('[output]', 'output folder')
   .action(async (target, output, options) => {
     try {
-      USER_CONFIG = getUserSiteConfig(homedir, 'node-user-config.json');
       let type = options.type;
       if (type === 'rar') {
         if (!fs.existsSync(WINRAR_PATH)) {
@@ -71,7 +82,7 @@ program
       }
       for await (const dirent of await opendir(target)) {
         if (
-          !new RegExp(excludes.join('|')).test(dirent.name) &&
+          isTargetDirectory(dirent.name, options.targetDirs) &&
           dirent.isDirectory()
         ) {
           let name = dirent.name;
@@ -87,6 +98,7 @@ program
             outputPath,
             targetPath,
             password: options.password,
+            volume: options.volume,
           };
           let s = '';
           if (type === 'rar') {
