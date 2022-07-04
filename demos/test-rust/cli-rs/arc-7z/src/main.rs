@@ -1,4 +1,4 @@
-use arc_7z::{get_matches, run, Config};
+use archive::{get_matches, run, Config};
 
 fn main() {
     let matches = get_matches();

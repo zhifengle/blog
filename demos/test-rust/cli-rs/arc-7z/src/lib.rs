@@ -2,10 +2,10 @@ use std::{
     error::Error,
     fs,
     path::{Path, PathBuf},
-    process::Command,
+    process::Command as ProcessCommand,
 };
 
-use clap::{arg, App, ArgMatches};
+use clap::{arg, ArgMatches, Command};
 
 type MyResult<T> = Result<T, Box<dyn Error>>;
 
@@ -13,7 +13,7 @@ type MyResult<T> = Result<T, Box<dyn Error>>;
 #[derive(Debug)]
 pub struct Config<'a> {
     exclude_dirs: Vec<&'a str>,
-    pw: Option<&'a str>,
+    password: Option<&'a str>,
     target_dir: &'a str,
     output_dir: &'a str,
 }
@@ -23,10 +23,13 @@ impl<'a> Config<'a> {
     pub fn new(matches: &'a ArgMatches) -> MyResult<Config<'a>> {
         let exclude_dirs: Vec<&str> = matches.values_of("exclude").unwrap().collect();
         let target_dir = matches.value_of("target_dir").unwrap();
-        let output_dir = matches.value_of("output_dir").unwrap();
+        let mut output_dir = matches.value_of("output_dir").unwrap();
+        if output_dir == "-" {
+            output_dir = target_dir;
+        }
         Ok(Config {
             exclude_dirs,
-            pw: matches.value_of("pw"),
+            password: matches.value_of("password"),
             target_dir,
             output_dir,
         })
@@ -38,7 +41,7 @@ impl<'a> Config<'a> {
             .is_none()
     }
     fn get_pw_arg_7z(&self) -> Option<String> {
-        self.pw.map(|p| "-p".to_string() + p)
+        self.password.map(|p| "-p".to_string() + p)
     }
     fn get_args_7z(&self, folder: &str) -> Vec<String> {
         let target_folder = Path::new(self.target_dir)
@@ -52,26 +55,28 @@ impl<'a> Config<'a> {
             + ".7z";
         let mut args = vec!["a".to_string(), output_file, "-mhe".to_string()];
         args.push(target_folder);
-        if let Some(pw) = self.get_pw_arg_7z() {
-            args.push(pw);
+        if let Some(password) = self.get_pw_arg_7z() {
+            args.push(password);
         }
         args
     }
     pub fn archive_folder_7z(&self, folder: &str) -> MyResult<()> {
         // 不能像 nodejs 那样 exec("7z a xx.7z")
-        Command::new("7z").args(self.get_args_7z(folder)).status()?;
+        ProcessCommand::new("7z")
+            .args(self.get_args_7z(folder))
+            .status()?;
         Ok(())
     }
 }
 
 pub fn get_matches() -> ArgMatches {
-    return App::new("arc-7z")
-        .version("0.1.0")
+    return Command::new("archive")
+        .version("0.0.2")
         .author("Alan Yang")
-        .about("archive folders by 7z")
+        .about("archive folders")
         .arg(arg!(target_dir: <TARGET_DIR> "target dir"))
-        .arg(arg!(output_dir: -o [OUTPUT_DIR] "output dir").default_value("./"))
-        .arg(arg!(pw: -p --password [PASSWORD] "archive password"))
+        .arg(arg!(output_dir: -o [OUTPUT_DIR] "output dir").default_value("-"))
+        .arg(arg!(password: -p --password [PASSWORD] "archive password"))
         .arg(arg!(exclude: -e --exclude [EXCLUDE] ... "exclude dir").default_value("done"))
         .get_matches();
 }
