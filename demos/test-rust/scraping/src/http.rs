@@ -2,14 +2,14 @@ use reqwest::header;
 use serde::{Deserialize, Serialize};
 use std::{error::Error as StdError, str::FromStr};
 
-#[derive(Serialize, Deserialize, Clone, Copy)]
+#[derive(Serialize, Deserialize)]
 pub enum Method {
     #[serde(rename(serialize = "get", deserialize = "get"))]
     Get,
     #[serde(rename(serialize = "post", deserialize = "post"))]
     Post,
 }
-#[derive(Serialize, Deserialize, Clone, Copy)]
+#[derive(Serialize, Deserialize)]
 pub enum PostType {
     #[serde(rename(serialize = "json", deserialize = "json"))]
     Json,
@@ -17,7 +17,7 @@ pub enum PostType {
     Form,
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize)]
 pub struct Req {
     pub url: String,
     pub method: Method,
@@ -144,5 +144,18 @@ mod tests {
             post_type: None,
         };
         println!("{}", serde_json::to_string(&req).unwrap());
+    }
+    #[tokio::main]
+    #[test]
+    async fn t_fetch_text() -> Result<(), Box<dyn StdError>> {
+        // gbk 编码能够识别. 不像 nodejs 需要转码
+        let url = "https://bbs.kafan.cn/";
+        let client = HttpClient::new(HttpClientOpts {
+            ua: None,
+            proxy_url: None,
+        });
+        let content = client.fetch_text(url).await?;
+        println!("{}", content);
+        Ok(())
     }
 }
