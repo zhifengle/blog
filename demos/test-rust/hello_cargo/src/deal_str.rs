@@ -26,3 +26,20 @@ pub fn replace_space(s: String) -> String {
     }
     new_s
 }
+
+// https://kaisery.github.io/trpl-zh-cn/ch08-02-strings.html
+#[test]
+fn t_string() {
+    let hello = String::from("你好");
+    // 2个字符
+    for c in hello.chars() {
+        println!("{}", c);
+    }
+    // js 的写法
+    // let utf8Encode = new TextEncoder(); utf8Encode.encode('你好');
+
+    // 6 个;  [228, 189, 160, 229, 165, 189]
+    for b in hello.bytes() {
+        println!("{}", b);
+    }
+}
