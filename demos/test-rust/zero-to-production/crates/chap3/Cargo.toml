@@ -13,5 +13,8 @@ name = "chap3"
 [dependencies]
 actix-web = "4"
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
+serde = { version = "1", features = ["derive"]}
+sqlx = { version = "0.6", default-features = false, features = ["runtime-actix-rustls", "macros", "postgres", "uuid", "chrono", "migrate"] }
+
 [dev-dependencies]
 reqwest = "0.11"
