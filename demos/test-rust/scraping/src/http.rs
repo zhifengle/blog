@@ -1,6 +1,8 @@
+use std::str::FromStr;
+
+use anyhow::Result;
 use reqwest::header;
 use serde::{Deserialize, Serialize};
-use std::{error::Error as StdError, str::FromStr};
 
 #[derive(Serialize, Deserialize)]
 pub enum Method {
@@ -55,7 +57,7 @@ impl HttpClient {
             }
         }
     }
-    pub async fn fetch_text(&self, url: &str) -> Result<String, Box<dyn StdError>> {
+    pub async fn fetch_text(&self, url: &str) -> Result<String> {
         Ok(self
             .client
             .get(url)
@@ -65,7 +67,7 @@ impl HttpClient {
             //.text_with_charset("utf-8")
             .await?)
     }
-    pub async fn fetch_info(&self, req: Req) -> Result<String, Box<dyn StdError>> {
+    pub async fn fetch_info(&self, req: Req) -> Result<String> {
         let headers = req.headers.map_or(header::HeaderMap::new(), |v| {
             let mut headers = header::HeaderMap::new();
             let obj = v.as_object().unwrap();
@@ -114,7 +116,7 @@ impl HttpClient {
         };
         Ok(res)
     }
-    pub async fn fetch_json(&self, url: &str) -> Result<serde_json::Value, Box<dyn StdError>> {
+    pub async fn fetch_json(&self, url: &str) -> Result<serde_json::Value> {
         Ok(self
             .client
             .get(url)
@@ -147,7 +149,7 @@ mod tests {
     }
     #[tokio::main]
     #[test]
-    async fn t_fetch_text() -> Result<(), Box<dyn StdError>> {
+    async fn t_fetch_text() -> Result<()> {
         // gbk 编码能够识别. 不像 nodejs 需要转码
         let url = "https://bbs.kafan.cn/";
         let client = HttpClient::new(HttpClientOpts {

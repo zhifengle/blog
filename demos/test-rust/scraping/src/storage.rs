@@ -1,19 +1,18 @@
 use std::error::Error as StdError;
 use std::fs::{self, OpenOptions};
 use std::io::Read;
+use std::path::Path;
 
-pub struct Storage {
-    filename: String,
+pub struct Storage<T: AsRef<Path>> {
+    filename: T,
 }
 
-impl Storage {
-    pub fn new(filename: &str) -> Self {
-        Storage {
-            filename: filename.to_string(),
-        }
+impl<T: AsRef<Path>> Storage<T> {
+    pub fn new(filename: T) -> Self {
+        Storage { filename }
     }
     pub fn write_file(&self, contents: &str) -> Result<(), Box<dyn StdError>> {
-        fs::write(self.filename.as_str(), contents)?;
+        fs::write(&self.filename, contents)?;
         Ok(())
     }
     pub fn get_config(&self) -> Result<serde_json::Value, Box<dyn StdError>> {
@@ -21,7 +20,7 @@ impl Storage {
             .read(true)
             .write(true)
             .create(true)
-            .open(self.filename.as_str())?;
+            .open(&self.filename)?;
         let mut contents = String::new();
         file.read_to_string(&mut contents)?;
         if contents.is_empty() {
