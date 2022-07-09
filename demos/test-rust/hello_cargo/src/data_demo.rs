@@ -1,3 +1,6 @@
+#![allow(unused_imports)]
+#![allow(dead_code)]
+
 fn float_to_int() {
     let a: f32 = 42.42;
 

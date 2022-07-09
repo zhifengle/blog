@@ -1,103 +1,37 @@
-#![allow(unused_imports)]
-#![allow(dead_code)]
+// https://doc.rust-lang.org/rust-by-example/fn/closures/input_parameters.html
 
-use std::thread;
-use std::time::Duration;
-
-struct Cacher<T>
+fn apply<F>(f: F)
 where
-    T: Fn(u32) -> u32,
+    F: FnOnce(),
+    // F: FnMut(),
 {
-    calculation: T,
-    value: Option<u32>,
+    f();
 }
 
-impl<T> Cacher<T>
+fn apply_to_3<F>(f: F) -> i32
 where
-    T: Fn(u32) -> u32,
+    F: Fn(i32) -> i32,
 {
-    #[allow(dead_code)]
-    fn new(calculation: T) -> Cacher<T> {
-        Cacher {
-            calculation,
-            value: None,
-        }
-    }
-    // 这个种写法是有问题的。当 arg 变化的时候，并不能缓存值
-    #[allow(dead_code)]
-    fn value(&mut self, arg: u32) -> u32 {
-        match self.value {
-            Some(v) => v,
-            None => {
-                let v = (self.calculation)(arg);
-                self.value = Some(v);
-                v
-            }
-        }
-    }
+    f(3)
 }
 
-fn generate_workout(intensity: u32, random_number: u32) {
-    let mut expensive_result = Cacher::new(|num| {
-        println!("calculation slowly...");
-        thread::sleep(Duration::from_secs(2));
-        num
-    });
-    if intensity < 25 {
-        println!("do {} pushups", expensive_result.value(intensity));
-        println!("do {} situps", expensive_result.value(intensity));
-    } else {
-        if random_number == 3 {
-            println!("Take a break today!");
-        } else {
-            println!(
-                "Today, run for {} minutes!",
-                expensive_result.value(intensity)
-            );
-        }
-    }
-}
-pub fn t_closures_int() {
-    let x = 4;
-    let equal_to_x = |z| z == x;
-    let y = 4;
+#[test]
+fn t_closure_as_parameters() {
+    use std::mem;
+    let greeting = "hello";
+    let mut farewell = "goodbye".to_owned();
 
-    assert!(equal_to_x(y));
-}
+    // 捕获了 farewell, 并丢弃; 所以是 FnOnce
+    let diary = || {
+        println!("I said {}", greeting);
+        farewell.push_str("!!!");
+        println!("farewell {}", farewell);
 
-pub fn t_closures_vec() {
-    let haystack = vec![1, 2, 3];
-
-    let contains = move |needle| haystack.contains(needle);
-
-    println!("{}", contains(&1));
-    println!("{}", contains(&4));
-
-    let mut count = 0;
-    let mut inc = || {
-        count += 1;
-        println!("`count`: {}", count);
+        mem::drop(farewell);
     };
-    // let _reborrow = &count;
-    inc();
-}
+    apply(diary);
 
-#[cfg(test)]
-mod closures_tests {
-    use super::*;
-    #[test]
-    fn read_args_test() {
-        t_closures_int();
-    }
-    #[test]
-    #[should_panic]
-    fn call_with_different_values() {
-        let mut c = Cacher::new(|a| a);
-
-        let v1 = c.value(1);
-        let v2 = c.value(2);
-
-        assert_eq!(v1, 1);
-        assert_eq!(v2, 2);
-    }
+    // apply_to_3 返回的 i32，所以这里类型被自动推导出来
+    let double = |x| 2 * x;
+    println!("apply to 3: {}", apply_to_3(double));
 }
