@@ -1,3 +1,6 @@
+#![allow(dead_code)]
+#![allow(unused_imports)]
+
 #[derive(Debug, PartialEq)]
 pub struct Foo {
     bar: String,
