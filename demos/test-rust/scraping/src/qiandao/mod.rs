@@ -18,6 +18,22 @@ pub enum ExitCode {
     Success,
 }
 
+pub fn get_site_config(filename: Option<String>) -> serde_json::Value {
+    let config: serde_json::Value = match filename {
+        Some(p) => {
+            let contents = std::fs::read_to_string(p).unwrap();
+            serde_json::from_str(&contents).unwrap()
+        }
+        None => {
+            let filename = "node-site-config.json";
+            let filename = dirs::home_dir().unwrap().join(filename);
+            let contents = std::fs::read_to_string(filename).unwrap();
+            serde_json::from_str(&contents).unwrap()
+        }
+    };
+    config
+}
+
 pub struct Site {
     name: String,
     config: serde_json::Value,
@@ -52,10 +68,13 @@ impl Site {
 
 #[test]
 fn t_site() {
-    let filename = "node-site-config.json";
-    let filename = dirs::home_dir().unwrap().join(filename);
-    let contents = std::fs::read_to_string(filename).unwrap();
-    let mut v: serde_json::Value = serde_json::from_str(&contents).unwrap();
+    let mut v: serde_json::Value = get_site_config(None);
 
     let _s = Site::new("v2ex".to_string(), &mut v);
+}
+
+#[test]
+fn t_site_config() {
+    let c = get_site_config(None);
+    println!("{:?}", c);
 }

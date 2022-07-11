@@ -27,6 +27,46 @@ pub struct Req {
     pub body: Option<serde_json::Value>,
     pub headers: Option<serde_json::Value>,
 }
+
+impl Default for Req {
+    fn default() -> Self {
+        Self {
+            url: "".to_string(),
+            method: Method::Get,
+            post_type: None,
+            body: None,
+            headers: None,
+        }
+    }
+}
+
+impl Req {
+    pub fn new(url: String) -> Self {
+        Self {
+            url,
+            ..Default::default()
+        }
+    }
+    pub fn json(url: String) -> Self {
+        Self {
+            url,
+            method: Method::Post,
+            post_type: Some(PostType::Json),
+            body: None,
+            headers: None,
+        }
+    }
+    pub fn form(url: String) -> Self {
+        Self {
+            url,
+            method: Method::Post,
+            post_type: Some(PostType::Form),
+            body: None,
+            headers: None,
+        }
+    }
+}
+
 pub struct HttpClient {
     pub client: reqwest::Client,
 }
