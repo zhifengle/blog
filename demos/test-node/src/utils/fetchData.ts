@@ -1,5 +1,5 @@
 import os from 'os';
-import { AxiosRequestConfig } from 'axios';
+import type { AxiosRequestConfig } from 'axios';
 import { SiteConfigReq } from 'site';
 import { httpAgent, httpsAgent } from './agent';
 import { request } from './request';
@@ -68,6 +68,36 @@ export async function fetchInfo(
     headers: {
       ...gmXhrOpts.headers,
       ...config?.headers,
+    },
+  });
+  return res.data;
+}
+
+function getSiteConfg(url: string): AxiosRequestConfig {
+  const hostname = new URL(url)?.hostname;
+  const config = { ...req_site_configs, ...USER_SITE_CONFIG }[hostname] || {};
+  // JSON 配置 HttpsAgent
+  if (config.httpsAgent === 'httpsAgent') {
+    config.httpsAgent = httpsAgent;
+  }
+  if (config.httpAgent && config.httpAgent === 'httpAgent') {
+    config.httpAgent = httpAgent;
+  }
+  return config;
+}
+
+// 2022-07-12 使用 axios 的 api; fetchInfo 的代码就不动了
+export async function fetchInstance(
+  url: string,
+  config: AxiosRequestConfig = {}
+) {
+  const siteConfig = getSiteConfg(url);
+  const res = await request(url, {
+    ...siteConfig,
+    ...config,
+    headers: {
+      ...siteConfig.headers,
+      ...config.headers,
     },
   });
   return res.data;
