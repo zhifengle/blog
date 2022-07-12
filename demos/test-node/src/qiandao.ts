@@ -1,18 +1,13 @@
 import path from 'path';
+import os from 'os';
 import Storage from './storage';
 import { randomNum } from './utils/utils';
-import {
-  fetchInfo,
-  fetchText,
-  setOption as setFetchOption,
-} from './utils/fetchData';
+import { fetchInfo, fetchText, initDefaultOption } from './utils/fetchData';
 import { loggerFactory } from './utils/logger';
-import { SiteConfigReq } from 'site';
-import { getUserSiteConfig } from './utils/site-config';
 import { JSDOM } from 'jsdom';
 
 // node start
-const homedir = require('os').homedir();
+const homedir = os.homedir();
 const logsPath = path.join(homedir, 'Documents/test/logs');
 const CONFIG_FILE = 'qiandao-config.json';
 const CONFIG_FILE_PATH = path.join(logsPath, `${CONFIG_FILE}`);
@@ -21,8 +16,7 @@ const GM_getValue = storage.getValue.bind(storage);
 const GM_setValue = storage.setValue.bind(storage);
 const logger = loggerFactory('qiandao', logsPath);
 // config
-let USER_SITE_CONFIG: SiteConfigReq = getUserSiteConfig(homedir);
-setFetchOption(USER_SITE_CONFIG);
+initDefaultOption();
 // web 使用 DOMParser; parser.parseFromString(htmlString, "text/html");
 function getDocObj(htmlStr: string): Document {
   const dom = new JSDOM(htmlStr);

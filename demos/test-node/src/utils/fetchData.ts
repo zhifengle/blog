@@ -1,18 +1,23 @@
+import os from 'os';
 import { AxiosRequestConfig } from 'axios';
 import { SiteConfigReq } from 'site';
 import { httpAgent, httpsAgent } from './agent';
 import { request } from './request';
+import { getUserSiteConfig } from './site-config';
 
 export type IFetchOpts = {
-  method?: string;
   body?: any;
   // EUC-JP 部分网页编码
   decode?: string;
-  [key: string]: any;
-};
+} & AxiosRequestConfig;
 type IAjaxType = 'text' | 'json' | 'blob' | 'arraybuffer';
 
 let USER_SITE_CONFIG: SiteConfigReq = {};
+
+export function initDefaultOption() {
+  const homedir = os.homedir();
+  setOption(getUserSiteConfig(homedir));
+}
 
 export function setOption(config: SiteConfigReq) {
   USER_SITE_CONFIG = config;
