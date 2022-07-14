@@ -19,6 +19,10 @@ export function initDefaultOption() {
   setOption(getUserSiteConfig(homedir));
 }
 
+export function addSiteOption(host: string, config: AxiosRequestConfig) {
+  USER_SITE_CONFIG[host] = config;
+}
+
 export function setOption(config: SiteConfigReq) {
   USER_SITE_CONFIG = config;
 }

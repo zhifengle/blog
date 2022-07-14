@@ -1,4 +1,9 @@
-import { fetchInstance, initDefaultOption } from './utils/fetchData';
+import { executePython } from './utils/exe-py';
+import { fetchInstance, addSiteOption } from './utils/fetchData';
+import os from 'os';
+import path from 'path';
+
+var sign_data: Record<string, string> = {};
 
 // 使用客户端的 UA
 // https://github.com/orzogc/fake115uploader/blob/master/main.go
@@ -52,11 +57,11 @@ async function getSign(): Promise<{ sign: string; time: string }> {
 // wp_path_id: cid,
 // savepath: title
 async function postData(url: string, data: Record<string, string> = {}) {
-  const signData = await getSign();
+  sign_data = await getSign();
   const fd = new URLSearchParams({
-    // @TODO UID
+    // 测试一下不用传 uid
     // uid: '99',
-    ...signData,
+    ...sign_data,
     ...data,
   });
   return await fetchInstance(url, {
@@ -71,6 +76,20 @@ async function postData(url: string, data: Record<string, string> = {}) {
   });
 }
 async function init() {
-  initDefaultOption();
+  // @TODO python project path
+  const cookie = executePython(
+    path.join(os.homedir(), String.raw`Documents\test\py\web`),
+    'chrome.py',
+    'https://115.com'
+  );
+  addSiteOption('115.com', {
+    headers: {
+      'User-Agent':
+        'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36 115Browser/23.9.2',
+      Origin: 'https://115.com',
+      cookie,
+    },
+  });
+  // console.log(signData);
 }
 init();
