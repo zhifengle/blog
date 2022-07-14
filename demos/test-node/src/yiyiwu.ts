@@ -1,7 +1,5 @@
-import { executePython } from './utils/exe-py';
+import { execSync } from 'child_process';
 import { fetchInstance, addSiteOption } from './utils/fetchData';
-import os from 'os';
-import path from 'path';
 
 var sign_data: Record<string, string> = {};
 
@@ -76,12 +74,10 @@ async function postData(url: string, data: Record<string, string> = {}) {
   });
 }
 async function init() {
-  // @TODO python project path
-  const cookie = executePython(
-    path.join(os.homedir(), String.raw`Documents\test\py\web`),
-    'chrome.py',
-    'https://115.com'
-  );
+  // ref: test-js/node/batch-demo.cmd
+  const cookie = execSync(
+    `C:\\apps\\bin\\get-site-cookies.cmd 115.com`
+  ).toString();
   addSiteOption('115.com', {
     headers: {
       'User-Agent':
@@ -90,6 +86,7 @@ async function init() {
       cookie,
     },
   });
+  sign_data = await getSign();
   // console.log(signData);
 }
 init();

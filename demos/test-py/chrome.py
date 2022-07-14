@@ -7,6 +7,8 @@ from Crypto.Cipher import AES
 # import shutil
 from urllib.parse import urlparse
 
+# pip install pypiwin32 pycryptodome
+
 
 def get_encryption_key():
     local_state_path = os.path.join(os.environ["USERPROFILE"],
