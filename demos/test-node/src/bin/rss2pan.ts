@@ -5,7 +5,8 @@ import fs from 'fs';
 import { Command, Option } from 'commander';
 import { nyaa, mikanme, GetItemsFn, yiyiwu } from '../site';
 import { randomSleep } from '../utils/utils';
-import { fetchInstance } from '../utils/fetchData';
+import { fetchInstance, initDefaultOption } from '../utils/fetchData';
+import { loggerFactory } from '../utils/logger';
 
 type RssName = 'mikanme' | 'nyaa';
 
@@ -29,11 +30,25 @@ async function executeRssTask(name: RssName, rssList: Rss[]) {
     const contents = await fetchInstance(rss.url);
     const items = await rssFnDict[name](contents, rss.filter);
     // @TODO 分段; 以及新的离线
-    await yiyiwu.addOfflineTask(items.map((item) => item.magnet));
+    try {
+      await yiyiwu.addOfflineTask(items.map((item) => item.magnet));
+      items.forEach((item) => {
+        logger.info(`[115] [${name}] ${rss.name} ${item.title} ${item.magnet}`);
+      });
+    } catch (error) {
+      let msg = '';
+      if (typeof error === 'string') {
+        msg = error;
+      } else {
+        msg = error?.message;
+      }
+      msg && logger.error(msg);
+    }
     await randomSleep(1000, 500);
   }
 }
 
+const logger = loggerFactory('rss2pan', './');
 const program = new Command('rss2pan');
 program.version('0.0.1').description('Add magnet to wangpan');
 program
@@ -48,6 +63,7 @@ program
   .option('-y, --yiyiwu', '115')
   .option('-r --rss [rss]', 'rss config path', './rss.json')
   .action(async (options) => {
+    initDefaultOption();
     let rssConfig: RssConfig = {};
     try {
       rssConfig = JSON.parse(fs.readFileSync(options.rss, 'utf-8'));

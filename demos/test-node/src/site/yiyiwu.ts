@@ -1,4 +1,4 @@
-import { fetchInstance } from '../utils/fetchData';
+import { fetchInfo } from '../utils/fetchData';
 
 var sign_data: Record<string, string> = {};
 
@@ -33,7 +33,11 @@ export async function addOfflineTask(task: string | string[], cid?: string) {
     data['wp_path_id'] = cid;
   }
   const res = await postData(reqURL, data);
-  if (res?.errcode === 10008) {
+  var code = res.errcode || res.error_code || '';
+  if (code === 911) {
+    throw new Error('abnormal operation');
+  }
+  if (code === 10008) {
     throw new Error('task exist');
   }
   if (!res?.state) {
@@ -43,9 +47,7 @@ export async function addOfflineTask(task: string | string[], cid?: string) {
 }
 
 async function getSign(): Promise<{ sign: string; time: string }> {
-  const res = await fetchInstance('http://115.com/?ct=offline&ac=space', {
-    responseType: 'json',
-  });
+  const res = await fetchInfo('http://115.com/?ct=offline&ac=space', 'json');
   if (!res || !res.sign) {
     throw new Error('115 need login');
   }
@@ -61,9 +63,8 @@ async function postData(url: string, data: Record<string, string> = {}) {
     ...sign_data,
     ...data,
   });
-  return await fetchInstance(url, {
+  return await fetchInfo(url, 'json', {
     method: 'post',
-    responseType: 'json',
     data: fd,
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
