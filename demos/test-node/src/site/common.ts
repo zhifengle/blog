@@ -11,6 +11,12 @@ export type MatchFn = (str: string, ...args: any) => boolean;
 
 export type Pattern = string | MatchFn;
 
+export type GetItemsFn = (
+  rss: string,
+  pattern?: Pattern,
+  ...args: any
+) => Promise<Item[]>;
+
 export const patternMatch: MatchFn = (str, pattern: string) => {
   // @TODO flag
   const m = pattern.match(/^\/(.+)\/$/);
@@ -33,12 +39,16 @@ export function getMatchFn(pattern: Pattern): MatchFn {
   return pattern;
 }
 
-export function filterTitle(items: Item[], pattern?: Pattern): Item[] {
+export function filterItems<T extends Item>(
+  items: T[],
+  pattern?: Pattern,
+  key: string = 'title'
+): T[] {
   if (!pattern) {
     return items;
   }
   const isMatch = getMatchFn(pattern);
   return items.filter((item) => {
-    return isMatch(item.title);
+    return isMatch(item[key]);
   });
 }

@@ -1,9 +1,9 @@
-import os from 'os';
 import type { AxiosRequestConfig } from 'axios';
-import { SiteConfigReq } from 'site';
+import { SiteConfigReq } from '../types/site';
 import { httpAgent, httpsAgent } from './agent';
 import { request } from './request';
 import { getUserSiteConfig } from './site-config';
+import { execSync } from 'child_process';
 
 export type IFetchOpts = {
   body?: any;
@@ -14,9 +14,25 @@ type IAjaxType = 'text' | 'json' | 'blob' | 'arraybuffer';
 
 let USER_SITE_CONFIG: SiteConfigReq = {};
 
-export function initDefaultOption() {
-  const homedir = os.homedir();
-  setOption(getUserSiteConfig(homedir));
+export function initDefaultOption(filename?: string) {
+  const option = getUserSiteConfig(filename);
+  for (const [key, config] of Object.entries(option)) {
+    let cookie = config?.headers?.cookie as string;
+    if (!cookie) {
+      try {
+        cookie = execSync(
+          `C:\\apps\\bin\\get-site-cookies.cmd ${key}`
+        ).toString();
+      } catch (error) {}
+    }
+    if (cookie) {
+      config.headers = {
+        ...config.headers,
+        cookie,
+      };
+    }
+  }
+  setOption(option);
 }
 
 export function addSiteOption(host: string, config: AxiosRequestConfig) {

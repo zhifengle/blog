@@ -1,13 +1,6 @@
 import Parser from 'rss-parser';
 import { JSDOM } from 'jsdom';
-import {
-  filterTitle,
-  Item,
-  MAGNET_PREFIX,
-  MatchFn,
-  Pattern,
-  patternMatch,
-} from './common';
+import { filterItems, Item, MAGNET_PREFIX, Pattern } from './common';
 
 export function parseXML(str: string): Document {
   const dom = new JSDOM(str, { contentType: 'text/xml' });
@@ -48,7 +41,7 @@ export async function getItems(
 ): Promise<Item[]> {
   const parser = new Parser();
   const feed = await parser.parseString(rss);
-  return filterTitle(feed.items, pattern).map((item) => {
+  return filterItems(feed.items, pattern).map((item) => {
     item.magnet = convertToMagnet(item.link);
     return item;
   });

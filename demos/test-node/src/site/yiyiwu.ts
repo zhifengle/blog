@@ -1,5 +1,4 @@
-import { execSync } from 'child_process';
-import { fetchInstance, addSiteOption } from './utils/fetchData';
+import { fetchInstance } from '../utils/fetchData';
 
 var sign_data: Record<string, string> = {};
 
@@ -18,7 +17,7 @@ var sign_data: Record<string, string> = {};
   url: "magnet:?xt=urn:btih:afaf",
 }
 */
-async function addOfflineTask(task: string | string[], cid?: string) {
+export async function addOfflineTask(task: string | string[], cid?: string) {
   let data: Record<string, string> = {};
   let reqURL = 'http://115.com/web/lixian/?ct=lixian&ac=add_task_url';
   if (typeof task === 'string') {
@@ -48,7 +47,7 @@ async function getSign(): Promise<{ sign: string; time: string }> {
     responseType: 'json',
   });
   if (!res || !res.sign) {
-    throw new Error('need login');
+    throw new Error('115 need login');
   }
   return res;
 }
@@ -73,20 +72,3 @@ async function postData(url: string, data: Record<string, string> = {}) {
     },
   });
 }
-async function init() {
-  // ref: test-js/node/batch-demo.cmd
-  const cookie = execSync(
-    `C:\\apps\\bin\\get-site-cookies.cmd 115.com`
-  ).toString();
-  addSiteOption('115.com', {
-    headers: {
-      'User-Agent':
-        'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36 115Browser/23.9.2',
-      Origin: 'https://115.com',
-      cookie,
-    },
-  });
-  sign_data = await getSign();
-  // console.log(signData);
-}
-init();

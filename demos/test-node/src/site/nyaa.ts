@@ -1,5 +1,5 @@
 import Parser from 'rss-parser';
-import { filterTitle, Item, MAGNET_PREFIX, Pattern } from './common';
+import { filterItems, Item, MAGNET_PREFIX, Pattern } from './common';
 
 export function convertToMagnet(link: string): string {
   return MAGNET_PREFIX + link;
@@ -15,7 +15,7 @@ export async function getItems(
     },
   });
   const feed = await parser.parseString(rss);
-  return filterTitle(feed.items, pattern).map((item) => {
+  return filterItems(feed.items, pattern).map((item) => {
     const obj: Item = { ...item };
     obj.magnet = convertToMagnet(item.infoHash);
     return obj;

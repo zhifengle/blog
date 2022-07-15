@@ -1,6 +1,6 @@
 import { Command } from 'commander';
 import path from 'path';
-import { SiteConfigReq } from 'site';
+import { SiteConfigReq } from './types/site';
 import { fetchInfo, setOption as setFetchOption } from './utils/fetchData';
 import { request } from './utils/request';
 import { getUserSiteConfig } from './utils/site-config';
@@ -24,14 +24,13 @@ program
   .requiredOption('-u, --url <type>', 'lrts book url')
   .option('-p, --path <type>', 'the path for saving audio', downloadPath)
   .option('-t, --token <type>', 'aria2 secret token', '')
-  .option('--config <type>', 'user config path', homedir)
   .option('--port <type>', 'port', '6800')
   .argument('<start>', 'start chapter')
   .argument('[end]', 'last chapter', 0)
   .action(async (start, end, options) => {
     try {
       // 在 node-site-config.json 里面配置 Cookie 值
-      USER_SITE_CONFIG = getUserSiteConfig(options.config);
+      USER_SITE_CONFIG = getUserSiteConfig();
       setFetchOption(USER_SITE_CONFIG);
       const loginFlag = await isLogin();
       if (!loginFlag) {
