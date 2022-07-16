@@ -1,6 +1,7 @@
 import { fetchInfo } from '../utils/fetchData';
 
 var sign_data: Record<string, string> = {};
+const HOST = '115.com';
 
 // 使用客户端的 UA
 // https://github.com/orzogc/fake115uploader/blob/master/main.go
@@ -35,13 +36,13 @@ export async function addOfflineTask(task: string | string[], cid?: string) {
   const res = await postData(reqURL, data);
   var code = res.errcode || res.error_code || '';
   if (code === 911) {
-    throw new Error('abnormal operation');
+    throw new Error(`${HOST}: abnormal operation`);
   }
   if (code === 10008) {
-    throw new Error('task exist');
+    throw new Error(`${HOST}: task exist`);
   }
   if (!res?.state) {
-    throw new Error('add offline task failed');
+    throw new Error(`${HOST}: add offline task failed`);
   }
   return res;
 }
@@ -49,7 +50,7 @@ export async function addOfflineTask(task: string | string[], cid?: string) {
 async function getSign(): Promise<{ sign: string; time: string }> {
   const res = await fetchInfo('http://115.com/?ct=offline&ac=space', 'json');
   if (!res || !res.sign) {
-    throw new Error('115 need login');
+    throw new Error(`${HOST}: need login`);
   }
   return res;
 }

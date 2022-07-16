@@ -7,7 +7,7 @@ import { nyaa, mikanme, GetItemsFn, yiyiwu } from '../site';
 import { randomSleep } from '../utils/utils';
 import { fetchInstance, initDefaultOption } from '../utils/fetchData';
 import { loggerFactory } from '../utils/logger';
-import { RssService } from '../rss';
+import { RssService, SiteStatusService } from '../rss';
 
 type RssName = 'mikanme' | 'nyaa';
 
@@ -50,7 +50,12 @@ async function executeRssTask(name: RssName, rssList: Rss[]) {
       items.forEach((item) => {
         logger.info(`[115] [${name}] ${rss.name} ${item.title} ${item.magnet}`);
       });
-      await serivce.saveItems(items);
+      await serivce.saveItems(
+        items.map((item) => {
+          item.done = true;
+          return item;
+        })
+      );
     } catch (error) {
       let msg = '';
       if (typeof error === 'string') {
@@ -58,12 +63,22 @@ async function executeRssTask(name: RssName, rssList: Rss[]) {
       } else {
         msg = error?.message;
       }
+      if (msg.includes('abnormal operation')) {
+        await siteStatusService.updateStatus('115.com', {
+          abnormalOp: true,
+        });
+      } else if (msg.includes('need login')) {
+        await siteStatusService.updateStatus('115.com', {
+          needLogin: true,
+        });
+      }
       msg && logger.error(msg);
     }
     await randomSleep(1000, 500);
   }
 }
 
+const siteStatusService = new SiteStatusService();
 const logger = loggerFactory('rss2pan', './');
 const program = new Command('rss2pan');
 program.version('0.0.1').description('Add magnet to wangpan');
@@ -79,6 +94,11 @@ program
   .option('-y, --yiyiwu', '115')
   .option('-r --rss [rss]', 'rss config path', './rss.json')
   .action(async (options) => {
+    const ready = await siteStatusService.isReady('115.com');
+    if (!ready) {
+      console.error('115.com 需要浏览器操作');
+      return;
+    }
     initDefaultOption();
     let rssConfig: RssConfig = {};
     try {
@@ -96,4 +116,11 @@ program
     // fs.writeFileSync(options.rss, JSON.stringify(rssConfig, null, 2));
   });
 
+program
+  .command('reset')
+  .description('重置网站状态')
+  .argument('<host>', 'target host')
+  .action(async (host) => {
+    await siteStatusService.resetStatus(host);
+  });
 program.parse();
