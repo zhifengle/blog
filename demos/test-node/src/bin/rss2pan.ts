@@ -1,11 +1,14 @@
 #!/usr/bin/env node
 
-import path from 'path';
 import fs from 'fs';
 import { Command, Option } from 'commander';
 import { nyaa, mikanme, GetItemsFn, yiyiwu } from '../site';
 import { randomSleep } from '../utils/utils';
-import { fetchInstance, initDefaultOption } from '../utils/fetchData';
+import {
+  fetchInstance,
+  initDefaultOption,
+  initDefaultOptionFirefox,
+} from '../utils/fetchData';
 import { loggerFactory } from '../utils/logger';
 import { RssService, SiteStatusService } from '../rss';
 
@@ -27,16 +30,19 @@ const rssFnDict: Record<RssName, GetItemsFn> = {
   mikanme: mikanme.getItems,
 };
 
+async function getRssItems(name: RssName, rss: Rss) {
+  const contents = await fetchInstance(rss.url);
+  const items = await rssFnDict[name](contents, rss.filter);
+  const arr = await Promise.all(
+    items.map((item) => rssSerivce.isItemExist(item.magnet))
+  );
+  return items.filter((item, idx) => arr[idx] === false);
+}
+
 async function executeRssTask(name: RssName, rssList: Rss[]) {
   // const saveTasks: Promise<any>[] = [];
-  const serivce = new RssService();
   for (const rss of rssList) {
-    const contents = await fetchInstance(rss.url);
-    let items = await rssFnDict[name](contents, rss.filter);
-    let arr = await Promise.all(
-      items.map((item) => serivce.isItemExist(item.magnet))
-    );
-    items = items.filter((item, idx) => arr[idx] === false);
+    const items = await getRssItems(name, rss);
     if (!items || items.length === 0) {
       await randomSleep();
       continue;
@@ -50,7 +56,7 @@ async function executeRssTask(name: RssName, rssList: Rss[]) {
       items.forEach((item) => {
         logger.info(`[115] [${name}] ${rss.name} ${item.title} ${item.magnet}`);
       });
-      await serivce.saveItems(
+      await rssSerivce.saveItems(
         items.map((item) => {
           item.done = true;
           return item;
@@ -78,6 +84,7 @@ async function executeRssTask(name: RssName, rssList: Rss[]) {
   }
 }
 
+const rssSerivce = new RssService();
 const siteStatusService = new SiteStatusService();
 const logger = loggerFactory('rss2pan', './');
 const program = new Command('rss2pan');
@@ -99,7 +106,11 @@ program
       console.error('115.com 需要浏览器操作');
       return;
     }
-    initDefaultOption();
+    if (options.firefox) {
+      await initDefaultOptionFirefox(options.firefox);
+    } else {
+      initDefaultOption();
+    }
     let rssConfig: RssConfig = {};
     try {
       rssConfig = JSON.parse(fs.readFileSync(options.rss, 'utf-8'));

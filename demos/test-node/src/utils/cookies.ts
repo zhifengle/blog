@@ -53,11 +53,14 @@ export class FirefoxCookies {
   constructor(storage: string) {
     this.db = new Database(storage);
   }
-  getSiteCookie(url: string) {
+  getSiteCookie(url: string): Promise<string> {
     return new Promise((resolve, reject) => {
-      const urlObj = new URL(url);
+      let host = url;
+      if (url.startsWith('http')) {
+        host = new URL(url).host;
+      }
       this.db.all(
-        `SELECT * FROM moz_cookies WHERE host = ".${urlObj.host}" or host = "${urlObj.host}"`,
+        `SELECT * FROM moz_cookies WHERE host = ".${host}" or host = "${host}"`,
         (err, result) => {
           if (err) {
             reject(err);

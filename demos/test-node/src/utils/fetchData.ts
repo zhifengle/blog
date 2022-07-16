@@ -4,6 +4,7 @@ import { httpAgent, httpsAgent } from './agent';
 import { request } from './request';
 import { getUserSiteConfig } from './site-config';
 import { execSync } from 'child_process';
+import { FirefoxCookies } from './cookies';
 
 export type IFetchOpts = {
   body?: any;
@@ -14,8 +15,7 @@ type IAjaxType = 'text' | 'json' | 'blob' | 'arraybuffer';
 
 let USER_SITE_CONFIG: SiteConfigReq = {};
 
-// @TODO Firefox cookie
-export function initDefaultOption(configName?: string, cookiePath?: string) {
+export function initDefaultOption(configName?: string) {
   const option = getUserSiteConfig(configName);
   for (const [key, config] of Object.entries(option)) {
     let cookie = config?.headers?.cookie as string;
@@ -36,6 +36,26 @@ export function initDefaultOption(configName?: string, cookiePath?: string) {
   setOption(option);
 }
 
+export async function initDefaultOptionFirefox(cookiePath: string) {
+  const fx = new FirefoxCookies(cookiePath);
+  const option = getUserSiteConfig();
+  for (const [key, config] of Object.entries(option)) {
+    let cookie = config?.headers?.cookie as string;
+    if (!cookie) {
+      try {
+        cookie = await fx.getSiteCookie(key);
+      } catch (error) {}
+    }
+    if (cookie) {
+      config.headers = {
+        ...config.headers,
+        cookie,
+      };
+    }
+  }
+  setOption(option);
+}
+
 export function addSiteOption(host: string, config: AxiosRequestConfig) {
   USER_SITE_CONFIG[host] = config;
 }
@@ -44,15 +64,6 @@ export function setOption(config: SiteConfigReq) {
   USER_SITE_CONFIG = config;
 }
 
-// @TODO 添加 cookie 签到才有登录信息
-const req_site_configs: { [key: string]: AxiosRequestConfig } = {
-  'v2ex.com': {
-    httpsAgent: httpsAgent,
-    headers: {
-      Referer: 'https://v2ex.com/',
-    },
-  },
-};
 export async function fetchText(url: string, opts: any = {}) {
   return fetchInfo(url, 'text', opts);
 }
@@ -71,15 +82,7 @@ export async function fetchInfo(
   if (opts.decode) {
     type = 'arraybuffer';
   }
-  const hostname = new URL(url)?.hostname;
-  const config = { ...req_site_configs, ...USER_SITE_CONFIG }[hostname] || {};
-  // JSON 配置 HttpsAgent
-  if (config.httpsAgent === 'httpsAgent') {
-    config.httpsAgent = httpsAgent;
-  }
-  if (config.httpAgent && config.httpAgent === 'httpAgent') {
-    config.httpAgent = httpAgent;
-  }
+  const config = getSiteConfg(url);
   const res = await request(url, {
     timeout: TIMEOUT,
     method,
@@ -96,7 +99,7 @@ export async function fetchInfo(
 
 function getSiteConfg(url: string): AxiosRequestConfig {
   const hostname = new URL(url)?.hostname;
-  const config = { ...req_site_configs, ...USER_SITE_CONFIG }[hostname] || {};
+  const config = USER_SITE_CONFIG[hostname] || {};
   // JSON 配置 HttpsAgent
   if (config.httpsAgent === 'httpsAgent') {
     config.httpsAgent = httpsAgent;

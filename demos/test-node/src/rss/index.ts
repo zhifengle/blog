@@ -10,6 +10,8 @@ export class RssService {
       dialect: 'sqlite',
       storage: 'db.sqlite',
       models: [Item, Enclosure],
+      // 禁用打印 log
+      // logging: false,
       // 这种方式失败
       // models: [__dirname + '/models'],
     });
