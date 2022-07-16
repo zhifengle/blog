@@ -7,12 +7,14 @@ import { nyaa, mikanme, GetItemsFn, yiyiwu } from '../site';
 import { randomSleep } from '../utils/utils';
 import { fetchInstance, initDefaultOption } from '../utils/fetchData';
 import { loggerFactory } from '../utils/logger';
+import { RssService } from '../rss';
 
 type RssName = 'mikanme' | 'nyaa';
 
 type Rss = {
   name: string;
   url: string;
+  cid?: string;
   filter?: string;
 };
 
@@ -26,15 +28,29 @@ const rssFnDict: Record<RssName, GetItemsFn> = {
 };
 
 async function executeRssTask(name: RssName, rssList: Rss[]) {
+  // const saveTasks: Promise<any>[] = [];
+  const serivce = new RssService();
   for (const rss of rssList) {
     const contents = await fetchInstance(rss.url);
-    const items = await rssFnDict[name](contents, rss.filter);
-    // @TODO 分段; 以及新的离线
+    let items = await rssFnDict[name](contents, rss.filter);
+    let arr = await Promise.all(
+      items.map((item) => serivce.isItemExist(item.magnet))
+    );
+    items = items.filter((item, idx) => arr[idx] === false);
+    if (!items || items.length === 0) {
+      await randomSleep();
+      continue;
+    }
     try {
-      await yiyiwu.addOfflineTask(items.map((item) => item.magnet));
+      // @TODO 分段; 以及新的离线
+      await yiyiwu.addOfflineTask(
+        items.map((item) => item.magnet),
+        rss.cid
+      );
       items.forEach((item) => {
         logger.info(`[115] [${name}] ${rss.name} ${item.title} ${item.magnet}`);
       });
+      await serivce.saveItems(items);
     } catch (error) {
       let msg = '';
       if (typeof error === 'string') {

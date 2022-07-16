@@ -6,31 +6,26 @@ const sequelize = new Sequelize({
 });
 
 export async function test() {
-  (async () => {
-    await sequelize.sync();
-    const jane = await User.create({ name: 'Jane', age: 100, cash: 5000 });
-    await jane.increment({
-      age: 2,
-      cash: 100,
-    });
-  })();
-}
-class User extends Model {
-  declare id: number;
-  name: string;
-  age: number;
-  cash: number;
-}
-
-User.init(
-  {
-    name: DataTypes.TEXT,
-    favoriteColor: {
-      type: DataTypes.TEXT,
-      defaultValue: 'green',
+  sequelize.sync({ force: true });
+  const User = sequelize.define(
+    'user',
+    { name: DataTypes.STRING },
+    { timestamps: false }
+  );
+  const Task = sequelize.define(
+    'task',
+    { name: DataTypes.STRING },
+    { timestamps: false }
+  );
+  const Tool = sequelize.define(
+    'tool',
+    {
+      name: DataTypes.STRING,
+      size: DataTypes.STRING,
     },
-    age: DataTypes.INTEGER,
-    cash: DataTypes.INTEGER,
-  },
-  { sequelize }
-);
+    { timestamps: false }
+  );
+  User.hasMany(Task);
+  Task.belongsTo(User);
+  User.hasMany(Tool, { as: 'Instruments' });
+}

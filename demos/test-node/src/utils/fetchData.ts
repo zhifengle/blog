@@ -14,8 +14,9 @@ type IAjaxType = 'text' | 'json' | 'blob' | 'arraybuffer';
 
 let USER_SITE_CONFIG: SiteConfigReq = {};
 
-export function initDefaultOption(filename?: string) {
-  const option = getUserSiteConfig(filename);
+// @TODO Firefox cookie
+export function initDefaultOption(configName?: string, cookiePath?: string) {
+  const option = getUserSiteConfig(configName);
   for (const [key, config] of Object.entries(option)) {
     let cookie = config?.headers?.cookie as string;
     if (!cookie) {
