@@ -2,7 +2,7 @@
 
 import fs from 'fs';
 import { Command, Option } from 'commander';
-import { nyaa, mikanme, GetItemsFn, yiyiwu } from '../site';
+import { nyaa, mikanme, GetItemsFn, yiyiwu, dmhy } from '../site';
 import { randomSleep } from '../utils/utils';
 import {
   fetchInstance,
@@ -12,7 +12,7 @@ import {
 import { loggerFactory } from '../utils/logger';
 import { RssService, SiteStatusService } from '../rss';
 
-type RssName = 'mikanme' | 'nyaa';
+type RssName = 'mikanme' | 'nyaa' | 'dmhy';
 
 type Rss = {
   name: string;
@@ -28,6 +28,7 @@ type RssConfig = {
 const rssFnDict: Record<RssName, GetItemsFn> = {
   nyaa: nyaa.getItems,
   mikanme: mikanme.getItems,
+  dmhy: dmhy.getItems,
 };
 
 async function getRssItems(name: RssName, rss: Rss) {

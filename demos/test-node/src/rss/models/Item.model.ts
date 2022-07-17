@@ -22,7 +22,14 @@ export class Item extends Model {
   content?: string;
   @Column
   isoDate?: Date;
-  @Column
+  @Column({
+    get() {
+      return this.getDataValue('categories').split(';');
+    },
+    set(val: string[]) {
+      this.setDataValue('categories', val.join(';'));
+    },
+  })
   categories?: string;
   @Column
   contentSnippet?: string;
