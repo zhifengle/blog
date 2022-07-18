@@ -135,4 +135,46 @@ program
   .action(async (host) => {
     await siteStatusService.resetStatus(host);
   });
+program
+  .command('fetch')
+  .description('保存 rss 数据到数据库')
+  .argument('<name>', 'rss name')
+  .action(async (name) => {
+    initDefaultOption();
+    let rssConfig: RssConfig = {};
+    try {
+      rssConfig = JSON.parse(fs.readFileSync('rss.json', 'utf-8'));
+    } catch (error) {
+      console.error(error);
+    }
+    const list: Rss[] = rssConfig[name as RssName];
+    if (!list || list.length === 0) {
+      console.error('输入的 rss name 不对');
+      return;
+    }
+    for (const rss of list) {
+      const items = await getRssItems(name, rss);
+      if (!items || items.length === 0) {
+        await randomSleep();
+        continue;
+      }
+      try {
+        await rssSerivce.saveItems(
+          items.map((item) => {
+            // item.done = true;
+            return item;
+          })
+        );
+      } catch (error) {
+        let msg = '';
+        if (typeof error === 'string') {
+          msg = error;
+        } else {
+          msg = error?.message;
+        }
+        msg && logger.error(msg);
+      }
+      await randomSleep(1000, 500);
+    }
+  });
 program.parse();
