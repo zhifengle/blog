@@ -12,7 +12,7 @@ import {
 import { loggerFactory } from '../utils/logger';
 import { RssService, SiteStatusService } from '../rss';
 
-type RssName = 'mikanme' | 'nyaa' | 'dmhy';
+type RssName = 'mikanani.me' | 'nyaa.si' | 'share.dmhy.org' | 'sukebei.nyaa.si';
 
 type Rss = {
   name: string;
@@ -25,10 +25,32 @@ type RssConfig = {
   [key in RssName]?: Rss[];
 };
 
+function getRssConfigByURL(rssConfig: RssConfig, url: string): RssConfig {
+  const urlObj = new URL(url);
+  const config: RssConfig = {
+    [urlObj.host]: [
+      {
+        name: url,
+        url,
+      },
+    ],
+  };
+  if (rssConfig.hasOwnProperty(urlObj.host)) {
+    let rss = rssConfig[urlObj.host as RssName].find((c) => c.url === url);
+    if (rss) {
+      return {
+        [urlObj.host]: [rss],
+      };
+    }
+  }
+  return config;
+}
+
 const rssFnDict: Record<RssName, GetItemsFn> = {
-  nyaa: nyaa.getItems,
-  mikanme: mikanme.getItems,
-  dmhy: dmhy.getItems,
+  'nyaa.si': nyaa.getItems,
+  'sukebei.nyaa.si': nyaa.getItems,
+  'mikanani.me': mikanme.getItems,
+  'share.dmhy.org': dmhy.getItems,
 };
 
 async function getRssItems(name: RssName, rss: Rss) {
@@ -101,6 +123,7 @@ program
   )
   .option('-y, --yiyiwu', '115')
   .option('-r --rss [rss]', 'rss config path', './rss.json')
+  .option('-u --url [ur]', 'rss url')
   .action(async (options) => {
     const ready = await siteStatusService.isReady('115.com');
     if (!ready) {
@@ -118,9 +141,13 @@ program
     } catch (error) {
       console.error(error);
     }
+    let config: RssConfig = rssConfig;
+    if (options.url) {
+      config = getRssConfigByURL(rssConfig, options.url);
+    }
     // var currentPath = process.cwd();
     await Promise.all(
-      Object.entries(rssConfig).map(([key, list]) =>
+      Object.entries(config).map(([key, list]) =>
         executeRssTask(key as RssName, list)
       )
     );
