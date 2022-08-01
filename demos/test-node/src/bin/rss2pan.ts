@@ -11,6 +11,7 @@ import {
 } from '../utils/fetchData';
 import { loggerFactory } from '../utils/logger';
 import { RssService, SiteStatusService } from '../rss';
+import { JsonEngine, KvExpiration } from 'kv-expiration';
 
 type RssName = 'mikanani.me' | 'nyaa.si' | 'share.dmhy.org' | 'sukebei.nyaa.si';
 
@@ -62,14 +63,23 @@ async function getRssItems(name: RssName, rss: Rss) {
   return items.filter((item, idx) => arr[idx] === false);
 }
 
-async function executeRssTask(name: RssName, rssList: Rss[]) {
+async function executeRssTask(
+  name: RssName,
+  rssList: Rss[],
+  options: { url?: string } & Record<string, any>
+) {
   // const saveTasks: Promise<any>[] = [];
   for (const rss of rssList) {
+    if (!options.url && rssUrlExpiration.get(rss.url)) {
+      continue;
+    }
     const items = await getRssItems(name, rss);
     if (!items || items.length === 0) {
       await randomSleep();
       continue;
     }
+    // 三天不请求
+    rssUrlExpiration.set(rss.url, true, 3);
     try {
       // @TODO 分段; 以及新的离线
       await yiyiwu.addOfflineTask(
@@ -106,6 +116,9 @@ async function executeRssTask(name: RssName, rssList: Rss[]) {
     await randomSleep(1000, 500);
   }
 }
+
+const engine = new JsonEngine('expiration.json');
+const rssUrlExpiration = new KvExpiration(engine, 'RSS_URL_');
 
 const rssSerivce = new RssService();
 const siteStatusService = new SiteStatusService();
@@ -148,7 +161,7 @@ program
     // var currentPath = process.cwd();
     await Promise.all(
       Object.entries(config).map(([key, list]) =>
-        executeRssTask(key as RssName, list)
+        executeRssTask(key as RssName, list, options)
       )
     );
 

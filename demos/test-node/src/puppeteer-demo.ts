@@ -1,3 +1,4 @@
+/*
 import puppeteer from 'puppeteer-core';
 import path from 'path';
 
@@ -40,3 +41,5 @@ import path from 'path';
   await page.close();
   await browser.close();
 })();
+
+*/

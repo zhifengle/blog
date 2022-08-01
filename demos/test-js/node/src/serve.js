@@ -1,15 +1,11 @@
-import path from 'path';
-import http from 'http';
+import path from "path";
+import http from "http";
 // import https from 'https';
-import fs from 'fs';
+import fs from "fs";
 
-type IServeConfig = {
-  public: string;
-  [key: string]: any;
-};
-const handler = require('serve-handler');
+const handler = require("serve-handler");
 
-const registerShutdown = (fn: (...arg: any) => any) => {
+const registerShutdown = (fn) => {
   let run = false;
 
   const wrapper = () => {
@@ -19,9 +15,9 @@ const registerShutdown = (fn: (...arg: any) => any) => {
     }
   };
 
-  process.on('SIGINT', wrapper);
-  process.on('SIGTERM', wrapper);
-  process.on('exit', wrapper);
+  process.on("SIGINT", wrapper);
+  process.on("SIGTERM", wrapper);
+  process.on("exit", wrapper);
 };
 
 async function run() {
@@ -33,16 +29,16 @@ async function run() {
   });
 }
 
-function startServe(config: IServeConfig) {
+function startServe(config) {
   const server = http.createServer(async (req, res) => {
     handler(req, res, {
       public: config.public,
     });
   });
-  server.listen('3000', async () => {
+  server.listen("3000", async () => {
     registerShutdown(() => server.close());
   });
-  server.on('error', (err) => {
+  server.on("error", (err) => {
     console.error(`Failed to serve: ${err.stack}`);
     process.exit(1);
   });
