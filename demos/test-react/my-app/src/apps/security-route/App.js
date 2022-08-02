@@ -1,3 +1,4 @@
+import React from 'react';
 import './App.css';
 import {
   BrowserRouter,
@@ -9,9 +10,11 @@ import {
 import Home from './Home';
 import Public from './Public';
 import Private1 from './Private1';
-import Private2 from './Private2';
 import Login from './Login';
 import { useUser, UserProvider } from './user-ctx';
+
+// 使用懒加载
+const Private2 = React.lazy(() => import('./Private2'));
 
 // https://www.robinwieruch.de/react-router-private-routes/
 // 这种方式兼容两种写法. 也可以拆开写
@@ -47,7 +50,14 @@ function App() {
             />
             {/* 需要相同的布局时采取这种 */}
             <Route element={<PrivateRoute />}>
-              <Route path="/private2" element={<Private2 />} />
+              <Route
+                path="/private2"
+                element={
+                  <React.Suspense fallback={<>...</>}>
+                    <Private2 />
+                  </React.Suspense>
+                }
+              />
             </Route>
             <Route exact path="/login" element={<Login />} />
             <Route path="*" element={<p>There's nothing here: 404!</p>} />
