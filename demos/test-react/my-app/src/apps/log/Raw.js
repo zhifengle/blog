@@ -3,6 +3,11 @@ import './styles.css';
 
 const LogContext = React.createContext();
 
+// 当 LogProvider 中的 addLog 被子组件调用，LogProvider重渲染。
+// Provider 的 value 发生改变，
+// value 包含了 logs 和 setLogs 属性
+// useContext(LogContext)的子组件重新渲染。
+
 function LogProvider({ children }) {
   const [logs, setLogs] = useState([]);
   const addLog = (log) => setLogs((prevLogs) => [...prevLogs, log]);
