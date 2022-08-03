@@ -20,6 +20,7 @@ type Rss = {
   url: string;
   cid?: string;
   filter?: string;
+  expiration?: number;
 };
 
 type RssConfig = {
@@ -78,8 +79,8 @@ async function executeRssTask(
       await randomSleep();
       continue;
     }
-    // 三天不请求
-    rssUrlExpiration.set(rss.url, true, 3);
+    // 六天不请求
+    rssUrlExpiration.set(rss.url, true, rss.expiration || 6);
     try {
       // @TODO 分段; 以及新的离线
       await yiyiwu.addOfflineTask(
