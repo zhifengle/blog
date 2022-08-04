@@ -258,6 +258,83 @@ const siteDict: SiteConfig[] = [
     },
   },
   {
+    name: 'acgrip',
+    href: 'https://bbs.acgrip.com/',
+    async signFn() {
+      if (getSignResult(this.name)) {
+        logger.info(`${this.name} 已签到`);
+        return;
+      }
+      const content = await fetchText(
+        genUrl(this.href, 'dsu_paulsign-sign.html')
+      );
+      if (content.includes('您需要先登录才能继续本操作')) {
+        logger.error(`${this.name} 需要登录`);
+        return;
+      }
+      if (content.includes('您今天已经签到过了或者签到时间还未开始')) {
+        setSignResult(this.name, true);
+        return;
+      }
+      const formhashRe =
+        /<input\s*type="hidden"\s*name="formhash"\s*value="([^"]+)"\s*\/?>/;
+      const matchFormhash = content.match(formhashRe);
+      if (
+        matchFormhash &&
+        /<form\s*id="qiandao"\s*method="post"/.test(content)
+      ) {
+        const url =
+          'plugin.php?id=dsu_paulsign:sign&operation=qiandao&infloat=1&inajax=1';
+        const fd = new URLSearchParams();
+        fd.append('formhash', matchFormhash[1]);
+        const arr = ['kx', 'ym', 'wl', 'nu', 'ch', 'fd', 'yl', 'shuai'];
+        fd.append('qdxq', arr[randomNum(5, 0)]);
+        fd.append('fastreply', '0');
+        // todaysay
+        fd.append('qdmode', '3');
+        const signRes = await fetchInfo(
+          // genUrl(this.href, $form.getAttribute('action')),
+          genUrl(this.href, url),
+          'text',
+          {
+            method: 'POST',
+            body: fd,
+            headers: { 'content-type': 'application/x-www-form-urlencoded' },
+          }
+        );
+        if (signRes.includes('未定义操作')) {
+          return;
+        } else if (signRes.includes('恭喜你签到成功')) {
+          // 刷新
+          await fetchText(genUrl(this.href, 'dsu_paulsign-sign.html'));
+          setSignResult(this.name, true);
+          return;
+        }
+      }
+    },
+  },
+  {
+    name: 'acgrip-task',
+    href: 'https://bbs.acgrip.com/',
+    async signFn() {
+      if (getSignResult(this.name)) {
+        logger.info(`${this.name} 已签到`);
+        return;
+      }
+      const content = await fetchText(
+        genUrl(this.href, 'home.php?mod=task&do=apply&id=1')
+      );
+      if (content.match('抱歉，本期您已申请过此任务，请下期再来')) {
+        setSignResult(this.name, true);
+        return;
+      } else if (content.match('您需要先登录才能继续本操作')) {
+        logger.error(`${this.name} 需要登录`);
+        return;
+      }
+      setSignResult(this.name, true);
+    },
+  },
+  {
     name: '2dfan',
     href: 'https://galge.fun/',
     async signFn() {
@@ -378,7 +455,7 @@ async function main() {
       continue;
     }
     // for test
-    // if (obj.name === 'kafan') {
+    // if (obj.name === 'acgrip-task') {
     //   await obj.signFn();
     //   return;
     // }
