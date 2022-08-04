@@ -1,0 +1,14 @@
+# https://github.com/bangumi/dev-env/blob/master/docker-compose.yaml
+version: '3'
+
+services:
+  mysql:
+    container_name: mysql8
+    ports:
+      - '3306:3306'
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: secret
+      MYSQL_DATABASE: bangumi
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
