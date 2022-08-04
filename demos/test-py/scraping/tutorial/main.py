@@ -11,4 +11,4 @@ if __name__ == '__main__':
 
     # execute(["scrapy", "crawl", "quotes"])
     # 提取 json
-    execute(["scrapy", "crawl", "quotes", "-O", "quotes.json"])
+    execute(["scrapy", "crawl", "user", "-O", "quotes.jl"])
