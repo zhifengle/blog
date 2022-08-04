@@ -21,7 +21,7 @@
     "hpagent": "^1.0.0",
     "iconv-lite": "^0.6.3",
     "jsdom": "^19.0.0",
-    "kv-expiration": "^0.0.4",
+    "kv-expiration": "^0.0.5",
     "moment": "^2.29.4",
     "moment-timezone": "^0.5.34",
     "reflect-metadata": "^0.1.13",
