@@ -7,7 +7,17 @@
 # useful for handling different item types with a single interface
 from itemadapter import ItemAdapter
 
+from .items import User
+
 
 class TutorialPipeline:
     def process_item(self, item, spider):
+        return item
+
+
+class BgmPipeline:
+    def process_item(self, item, spider):
+        if isinstance(item, User):
+            print('================= pipe ============')
+            pass
         return item
