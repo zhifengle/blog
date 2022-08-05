@@ -43,8 +43,9 @@ impl ResponseError for WebError {
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    let port = std::env::var("PORT").unwrap_or("8080".to_string());
-    let port = port.parse().unwrap();
+    let port: u16 = std::env::var("PORT").map_or(8080, |v| v.parse().unwrap());
+    // let port = std::env::var("PORT").unwrap_or("8080".to_string());
+    // let port = port.parse().unwrap();
     HttpServer::new(|| App::new().service(echo).service(run_cmd))
         .bind(("127.0.0.1", port))?
         .run()
