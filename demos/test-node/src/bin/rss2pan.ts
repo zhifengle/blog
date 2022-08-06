@@ -79,8 +79,6 @@ async function executeRssTask(
       await randomSleep();
       continue;
     }
-    // 六天不请求
-    rssUrlExpiration.set(rss.url, true, rss.expiration || 6);
     try {
       // @TODO 分段; 以及新的离线
       await yiyiwu.addOfflineTask(
@@ -96,6 +94,8 @@ async function executeRssTask(
           return item;
         })
       );
+      // 六天不请求
+      rssUrlExpiration.set(rss.url, true, rss.expiration || 6);
     } catch (error) {
       let msg = '';
       if (typeof error === 'string') {
