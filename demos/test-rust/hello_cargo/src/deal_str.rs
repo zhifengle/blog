@@ -1,3 +1,6 @@
+#![allow(unused_imports)]
+#![allow(dead_code)]
+
 // C++ char* str, length; 的解法是先算出空格数 *2 + 原长；
 // 通过倒序的遍历，遍历原长。 遇到空格倒序填充为 '0' '2' '%'
 // 遇到正常字符正常填充
@@ -42,4 +45,10 @@ fn t_string() {
     for b in hello.bytes() {
         println!("{}", b);
     }
+
+    // windows-rs PWSTR 创建
+    let _text = String::from("my pwstr literal")
+        .encode_utf16()
+        .collect::<Vec<u16>>();
+    // let mypwstr = PWSTR(text.as_mut_ptr());
 }

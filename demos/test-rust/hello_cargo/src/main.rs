@@ -15,6 +15,7 @@ mod sort;
 mod st_demo;
 mod trait_blog;
 mod types;
+pub mod utils;
 mod vector_demo;
 
 fn main() {
