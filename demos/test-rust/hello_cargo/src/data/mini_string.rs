@@ -69,7 +69,8 @@ impl fmt::Display for MyString {
     }
 }
 
-fn main() {
+#[test]
+fn t_mini_string() {
     let len1 = std::mem::size_of::<MyString>();
     let len2 = std::mem::size_of::<MiniString>();
     println!("Len: MyString {}, MiniString {}", len1, len2);

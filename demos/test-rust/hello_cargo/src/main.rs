@@ -1,25 +1,21 @@
-mod closures;
-mod deal_str;
-mod enum_demo;
-// 迭代器
-mod cmd_demo;
-mod combinators;
-mod data_demo;
-mod iterator_demo;
-mod macro_demo;
-mod memo_demo;
-mod misc_fn;
-mod ownership_demo;
-mod poker_demo;
-mod sort;
-mod st_demo;
-mod trait_blog;
-mod types;
-pub mod utils;
-mod vector_demo;
+mod basic;
+mod data;
+mod misc;
+mod stdlib;
 
+// 📌 默认都是已经验证了的 demo。不再放入 mod.rs 。这样能减少不必要的载入
+
+// 📌 basic 里面是一些基础的代码。来自官方 book。
+// https://doc.rust-lang.org/book/
+// https://doc.rust-lang.org/stable/rust-by-example/index.html
+
+// 📌 data 里面是一些数据类型的 demo。
+
+// 📌 stdlib 一些标准库的用法
+// 部分来自 https://rust-lang-nursery.github.io/rust-cookbook/about.html
+
+// misc 随便放的
 fn main() {
     // cargo run 11 poem.txt
     // minigrep::mingrep_main();
-    vector_demo::vector_demo();
 }

@@ -7,11 +7,6 @@ use std::ffi::c_void;
 
 // unsafe 里面使用 libc 创建的指针需要手动释放。所以尽量在 Rust 里面创建指针
 
-fn main() {
-    // let mut title = [0u8; 10];
-    t_box();
-}
-
 fn t_box() {
     {
         let a: Box<i32> = Box::new(10);

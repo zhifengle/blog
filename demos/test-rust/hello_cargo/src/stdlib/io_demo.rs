@@ -7,8 +7,8 @@ use std::io::Read;
 use std::{error::Error as StdError, fs::OpenOptions};
 
 // ref: scraping  storage.rs
-
-fn main() {
+#[test]
+fn t_read() {
     let _s = std::fs::read("Cargo.toml").unwrap();
 }
 

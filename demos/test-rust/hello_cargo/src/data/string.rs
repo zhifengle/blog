@@ -1,21 +1,10 @@
 #![allow(unused_imports)]
 #![allow(dead_code)]
 
-// C++ char* str, length; 的解法是先算出空格数 *2 + 原长；
-// 通过倒序的遍历，遍历原长。 遇到空格倒序填充为 '0' '2' '%'
-// 遇到正常字符正常填充
-// rust 不支持 string 的索引的。
-// let ss = s.chars().nth(i);
-// match ss {
-//     Some(c) => {
-//         if c == ' ' {
-//             j -= 1;
-//         }
-//     }
-//     None => (),
-// }
+// https://gist.github.com/jimmychu0807/9a89355e642afad0d2aeda52e6ad2424
 
-#[allow(dead_code)]
+fn main() {}
+
 pub fn replace_space(s: String) -> String {
     // 支持直接替换
     // let ans = s.replace(' ', "%20");
@@ -31,7 +20,6 @@ pub fn replace_space(s: String) -> String {
 }
 
 // https://kaisery.github.io/trpl-zh-cn/ch08-02-strings.html
-#[test]
 fn t_string() {
     let hello = String::from("你好");
     // 2个字符
@@ -46,9 +34,21 @@ fn t_string() {
         println!("{}", b);
     }
 
+    // PCWSTR 是不可变的字符串
     // windows-rs PWSTR 创建
     let _text = String::from("my pwstr literal")
         .encode_utf16()
         .collect::<Vec<u16>>();
     // let mypwstr = PWSTR(text.as_mut_ptr());
+}
+
+fn convert_cookie_string() {
+    /*
+    let mut str = String::new();
+    self.iter().for_each(|cookie| {
+        str.push_str(&format!("{}={}; ", cookie.name, cookie.value));
+    });
+    str.pop();
+    str.pop();
+    */
 }

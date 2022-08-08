@@ -1,9 +1,19 @@
+#![allow(unused_imports)]
+#![allow(dead_code)]
+
 use std::collections::HashSet;
 use std::error::Error;
 use std::io::{Error as IoError, ErrorKind, Write};
 use std::process::{Command, Stdio};
 
 // https://rust-lang-nursery.github.io/rust-cookbook/os/external.html
+
+pub fn pause() {
+    let _ = std::process::Command::new("cmd.exe")
+        .arg("/c")
+        .arg("pause")
+        .status();
+}
 
 #[test]
 fn t_python_cmd() -> Result<(), Box<dyn Error>> {
