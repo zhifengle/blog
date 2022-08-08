@@ -58,7 +58,8 @@ fn test_func() -> Result<usize, MyError> {
     Err(MyError::Regular(ErrorKind::NotAuthorized))
 }
 
-fn main() {
+#[test]
+fn t_main() {
     assert!(test_func().is_err());
     println!("{:?}", test_func().unwrap_err());
 }
