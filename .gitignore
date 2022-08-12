@@ -38,3 +38,8 @@ debug/
 *.out
 *.pdb
 *.lock
+## output files
+**/dist
+**/target
+**/node_modules
+**/.idea
