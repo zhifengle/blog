@@ -8,6 +8,7 @@ import { FirefoxCookies } from './cookies';
 
 export type IFetchOpts = {
   body?: any;
+  host?: string;
   // EUC-JP 部分网页编码
   decode?: string;
 } & AxiosRequestConfig;
@@ -82,7 +83,7 @@ export async function fetchInfo(
   if (opts.decode) {
     type = 'arraybuffer';
   }
-  const config = getSiteConfg(url);
+  const config = getSiteConfg(url, opts.host);
   const res = await request(url, {
     timeout: TIMEOUT,
     method,
@@ -97,8 +98,11 @@ export async function fetchInfo(
   return res.data;
 }
 
-function getSiteConfg(url: string): AxiosRequestConfig {
-  const hostname = new URL(url)?.hostname;
+function getSiteConfg(url: string, host?: string): AxiosRequestConfig {
+  let hostname = host;
+  if (!host) {
+    hostname = new URL(url)?.hostname;
+  }
   const config = USER_SITE_CONFIG[hostname] || {};
   // JSON 配置 HttpsAgent
   if (config.httpsAgent === 'httpsAgent') {

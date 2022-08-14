@@ -47,7 +47,17 @@ export async function addOfflineTask(task: string | string[], cid?: string) {
   return res;
 }
 
-async function getSign(): Promise<{ sign: string; time: string }> {
+export async function getUploadinfo() {
+  const res = await fetchInfo('https://proapi.115.com/app/uploadinfo', 'json', {
+    host: '115.com',
+  });
+  if (!res || res.errno === 99) {
+    throw new Error(`${HOST}: need login`);
+  }
+  return res;
+}
+
+export async function getSign(): Promise<{ sign: string; time: string }> {
   const res = await fetchInfo('http://115.com/?ct=offline&ac=space', 'json');
   if (!res || !res.sign) {
     throw new Error(`${HOST}: need login`);

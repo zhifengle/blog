@@ -149,6 +149,11 @@ program
     } else {
       initDefaultOption();
     }
+    try {
+      await yiyiwu.getUploadinfo();
+    } catch (error) {
+      console.error(error.message || '115.com 需要登录');
+    }
     let rssConfig: RssConfig = {};
     try {
       rssConfig = JSON.parse(fs.readFileSync(options.rss, 'utf-8'));
