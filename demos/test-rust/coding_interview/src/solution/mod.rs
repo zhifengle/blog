@@ -13,3 +13,4 @@ mod s0020_valid_parentheses;
 mod s0022_generate_parentheses;
 mod s0028_implement_strstr;
 mod s0029_divide_two_integers;
+mod s0030_substring_with_concatenation_of_all_words;
