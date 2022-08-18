@@ -7,7 +7,7 @@ function nextPermutation(nums: number[]): void {
     i -= 1;
   }
   if (i > 0) {
-    // i..len-1 里面比 i-1小的数字
+    // i..len-1 里面比 i-1大的数字
     while (j >= i && nums[i - 1] >= nums[j]) {
       j -= 1;
     }
