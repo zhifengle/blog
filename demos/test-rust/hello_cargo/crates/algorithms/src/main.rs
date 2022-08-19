@@ -1,6 +1,6 @@
 mod knuth_morris_pratt;
 mod min_distance;
-mod quick_sort;
+mod sorting;
 
 fn main() {
     println!("Hello, world!");
