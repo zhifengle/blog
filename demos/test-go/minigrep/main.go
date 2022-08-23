@@ -33,6 +33,8 @@ func parseConfig(args []string) Config {
 //func search(query, contents string) []string {
 //}
 
+// 运行需要设置 program argument
+// "you" "minigrep\poem.txt"
 func main() {
 	// https://gobyexample.com/
 	// flag 包是  -name=xxx

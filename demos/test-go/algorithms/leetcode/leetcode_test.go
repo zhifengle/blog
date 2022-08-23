@@ -4,6 +4,9 @@ import (
 	"testing"
 )
 
+// 一些参考。
+// https://github.com/halfrost/LeetCode-Go
+
 func TestName(t *testing.T) {
 	//fmt.Println(removeDuplicateLetters("bcabc"))
 }
