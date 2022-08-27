@@ -50,7 +50,7 @@ fn find(s: &Vec<char>, left: usize, right: usize, longest: &mut Vec<char>) -> Ve
     longest.to_vec()
 }
 
-pub fn longest_palindrome(s: String) -> String {
+pub fn longest_palindrome2(s: String) -> String {
     let (s, mut max) = (s.chars().collect::<Vec<char>>(), vec![]);
     fn find_max(s: &Vec<char>, max: Vec<char>, i: usize, j: usize) -> Vec<char> {
         let (mut i, mut j) = (i, j);
@@ -70,6 +70,33 @@ pub fn longest_palindrome(s: String) -> String {
         max = find_max(&s, max, i, i + 1);
     }
     max.into_iter().collect()
+}
+
+pub fn longest_palindrome(s: String) -> String {
+    let ss: Vec<char> = s.chars().collect();
+    let len = s.len();
+
+    let mut start = 0;
+    let mut end = 0;
+
+    for i in 0..len {
+        let mut left = i;
+        let mut right = i;
+
+        while right + 1 < len && ss[left] == ss[right + 1] {
+            right += 1;
+        }
+        while right + 1 < len && left > 0 && ss[right + 1] == ss[left - 1] {
+            right += 1;
+            left -= 1;
+        }
+
+        if right - left > end - start {
+            end = right;
+            start = left;
+        }
+    }
+    ss[start..=end].iter().collect()
 }
 
 #[test]
