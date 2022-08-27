@@ -107,6 +107,15 @@ async function executeRssTask(
         await siteStatusService.updateStatus('115.com', {
           abnormalOp: true,
         });
+      } else if (msg.includes('task exist')) {
+        rssUrlExpiration.set(rss.url, true, rss.expiration || 6);
+        logger.info(`[115] [task exist] [${name}] ${rss.name} ${rss.url}`);
+        await rssSerivce.saveItems(
+          items.map((item) => {
+            item.done = true;
+            return item;
+          })
+        );
       } else if (msg.includes('need login')) {
         await siteStatusService.updateStatus('115.com', {
           needLogin: true,
