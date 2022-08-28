@@ -5,7 +5,7 @@ pub struct Solution {}
 use std::cmp;
 
 impl Solution {
-    pub fn max_area(heights: Vec<i32>) -> i32 {
+    pub fn max_area2(heights: Vec<i32>) -> i32 {
         let size = heights.len();
 
         let mut water: i32 = 0;
@@ -22,6 +22,28 @@ impl Solution {
                 hi -= 1
             }
         }
+        water
+    }
+    pub fn max_area(height: Vec<i32>) -> i32 {
+        let mut water = 0;
+        let mut lo = 0;
+        let mut hi = height.len() - 1;
+        let mut i = 0;
+        while lo < hi {
+            let width = hi - lo;
+            if height[lo] > height[hi] {
+                i = hi;
+                hi -= 1;
+            } else {
+                i = lo;
+                lo += 1;
+            }
+            let cur = height[i] * width as i32;
+            if cur > water {
+                water = cur;
+            }
+        }
+
         water
     }
 }
