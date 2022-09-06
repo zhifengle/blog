@@ -48,7 +48,7 @@ func threeSum(nums []int) [][]int {
 	return result
 }
 
-func Test0003(t *testing.T) {
+func Test0015(t *testing.T) {
 	var tests = []struct {
 		input []int
 		ans   [][]int
