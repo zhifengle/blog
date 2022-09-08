@@ -1,4 +1,4 @@
-function threeSum(nums: number[]): number[][] {
+function threeSum2(nums: number[]): number[][] {
   const res: number[][] = [];
   // 注意:  nums.sort() 不是按照数字大小排序的
   nums.sort((a, b) => a - b);
@@ -27,6 +27,45 @@ function threeSum(nums: number[]): number[][] {
   }
 
   return res;
+}
+
+function threeSum(nums: number[]): number[][] {
+  const result: number[][] = [];
+  nums.sort((a, b) => a - b);
+  for (let i = 0; i < nums.length; i++) {
+    // 3数之和为 0. 第一个都大于0了。所以后面的不用比较了
+    if (nums[i] > 0) {
+      break;
+    }
+    // edge 去重
+    if (i > 0 && nums[i - 1] == nums[i]) {
+      continue;
+    }
+    let lo = i + 1;
+    let hi = nums.length - 1;
+    while (lo < hi) {
+      const sum = nums[i] + nums[lo] + nums[hi];
+      if (sum < 0) {
+        lo++;
+      } else if (sum > 0) {
+        hi--;
+      } else {
+        result.push([nums[i], nums[lo], nums[hi]]);
+        // edge 去重
+        while (lo < hi && nums[lo + 1] == nums[lo]) {
+          lo++;
+        }
+        // edge 去重
+        while (lo < hi && nums[hi - 1] == nums[hi]) {
+          hi--;
+        }
+        lo++;
+        hi--;
+      }
+    }
+  }
+
+  return result;
 }
 
 test('s0015_3sum', () => {
