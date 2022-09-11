@@ -451,7 +451,7 @@ const siteDict: SiteConfig[] = [
 async function main() {
   for (let i = 0; i < siteDict.length; i++) {
     const obj = siteDict[i];
-    if (['zodgame', 'kafan', 'manhuabudang'].includes(obj.name)) {
+    if (['zodgame', 'kafan', 'manhuabudang', 'v2ex'].includes(obj.name)) {
       continue;
     }
     // for test
