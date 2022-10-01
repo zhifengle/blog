@@ -3,7 +3,13 @@
 
 // https://gist.github.com/jimmychu0807/9a89355e642afad0d2aeda52e6ad2424
 
-fn main() {}
+// 分割字符串
+#[test]
+fn t_split() {
+    let link = "xxxEpisode/bbbbbb";
+    let idx = link.find("Episode/").unwrap();
+    format!("start_", &link[idx + 8..])
+}
 
 pub fn replace_space(s: String) -> String {
     // 支持直接替换

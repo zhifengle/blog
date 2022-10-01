@@ -1,5 +1,38 @@
 use std::collections::HashMap;
 
+// https://doc.rust-lang.org/std/vec/struct.Vec.html
+
+// https://doc.rust-lang.org/std/primitive.slice.html
+// https://doc.rust-lang.org/std/slice/index.html
+
+// 洗牌。或者说随机 list
+// https://programming-idioms.org/idiom/10/shuffle-a-list
+
+#[test]
+fn t_vec_base() {
+    let mut vec = Vec::new();
+    vec.extend([1, 2, 3].iter().copied());
+    println!("{:?}", vec);
+}
+
+#[test]
+fn t_slice_base() {
+    let mut vec = Vec::new();
+    vec.extend([1, 2, 3].iter().copied());
+    let int_slice = &vec[..];
+
+    // 得到裸指针  *const i32
+    let x_ptr = int_slice.as_ptr();
+    // 创建 window; iter.next().is_none()
+    int_slice.windows(2);
+    // v.swap(2, 4); 交换元素
+
+    assert_eq!(["hello", "world"].concat(), "helloworld");
+    assert_eq!([[1, 2], [3, 4]].concat(), [1, 2, 3, 4]);
+
+    assert_eq!(["hello", "world"].join(" "), "hello world");
+}
+
 #[allow(dead_code)]
 pub fn vector_demo() {
     let v1 = vec![1, 2, 3];
