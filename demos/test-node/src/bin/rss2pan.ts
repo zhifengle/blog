@@ -162,6 +162,7 @@ program
       await yiyiwu.getUploadinfo();
     } catch (error) {
       console.error(error.message || '115.com 需要登录');
+      return;
     }
     let rssConfig: RssConfig = {};
     try {
