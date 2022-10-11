@@ -33,8 +33,6 @@ export class Item extends Model {
   categories?: string;
   @Column
   contentSnippet?: string;
-  @HasOne(() => Enclosure)
-  enclosure?: Enclosure;
   @Column({ defaultValue: false })
   done: boolean;
   // magnet 的 hash. 必须填

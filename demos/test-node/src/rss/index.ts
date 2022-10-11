@@ -1,5 +1,4 @@
 import { Sequelize } from 'sequelize-typescript';
-import { Enclosure } from './models/Enclosure.model';
 import { Item } from './models/Item.model';
 import { SiteStatus } from './models/SiteStatus.model';
 
@@ -9,7 +8,7 @@ export class RssService {
     this.sequelize = new Sequelize({
       dialect: 'sqlite',
       storage: 'db.sqlite',
-      models: [Item, Enclosure],
+      models: [Item],
       // 禁用打印 log
       // logging: false,
       // 这种方式失败
