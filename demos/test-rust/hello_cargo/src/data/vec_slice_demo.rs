@@ -12,19 +12,34 @@ use std::collections::HashMap;
 fn t_vec_base() {
     let mut vec = Vec::new();
     vec.extend([1, 2, 3].iter().copied());
+    // 添加多个元素
+    vec.extend(&[2, 3, 4]);
     println!("{:?}", vec);
+
+    // https://programming-idioms.org/idiom/291/remove-sublist
+    // https://doc.rust-lang.org/std/vec/struct.Vec.html#method.drain
+    let mut v = vec![1, 2, 3];
+    let u: Vec<_> = v.drain(1..).collect();
+    assert_eq!(v, &[1]);
+    assert_eq!(u, &[2, 3]);
+    // 清空。就是 v.clear()
+    v.drain(..);
+    assert_eq!(v, &[]);
 }
 
 #[test]
 fn t_slice_base() {
     let mut vec = Vec::new();
     vec.extend([1, 2, 3].iter().copied());
+    // 两者是共享数据内存
     let int_slice = &vec[..];
 
     // 得到裸指针  *const i32
-    let x_ptr = int_slice.as_ptr();
+    let _x_ptr = int_slice.as_ptr();
     // 创建 window; iter.next().is_none()
-    int_slice.windows(2);
+    let _c = int_slice.chunks(2);
+    // 大小不够会报错。需要遍历全部使用 chunk
+    let _w = int_slice.windows(2);
     // v.swap(2, 4); 交换元素
 
     assert_eq!(["hello", "world"].concat(), "helloworld");
