@@ -54,13 +54,13 @@ async function* walk(dir, recursive) {
   }
 }
 
-async function run(dir, prefix = '') {
+async function run(dir, ext = '') {
   let counter = 0;
   for await (const p of walk(dir, false)) {
     let newName = nameArr[counter];
     if (newName && p && p.name && p.path) {
-      if (prefix) {
-        newName = `${newName}.${prefix}`;
+      if (ext) {
+        newName = `${newName}.${ext}`;
       }
       await renameFile(p.path, p.name, newName);
     }
