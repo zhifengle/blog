@@ -342,6 +342,7 @@ const siteDict: SiteConfig[] = [
         logger.info(`${this.name} 已签到`);
         return;
       }
+      // x-csrf-token 和 cookie 需要一并更新
       const content = await fetchText('https://galge.fun');
       if (content.includes('已连续签到')) {
         setSignResult(this.name, true);
