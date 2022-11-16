@@ -1,4 +1,6 @@
 const path = require('path');
+const fs = require('fs');
+const { execSync } = require('child_process');
 const { rename, opendir } = require('fs/promises');
 
 const targetPath = String.raw`C:\test`;
@@ -43,4 +45,33 @@ async function run(dir, recursive = false) {
   }
 }
 
-run(targetPath);
+function execGitCmd() {
+  if (fs.existsSync('.git')) {
+    execSync(`git config user.name "zhifengle"`);
+    changeGitRemote();
+  }
+}
+
+function changeGitRemote() {
+  try {
+    const remote = execSync(`git remote get-url origin`).toString();
+    if (remote.includes('22earth')) {
+      execSync(
+        `git remote set-url origin ${remote.replace('22earth', 'zhifengle')}`
+      );
+    }
+  } catch (error) {}
+}
+
+async function execute(dir, recursive = false) {
+  for await (const p of walk(dir, recursive)) {
+    const curFolder = path.join(dir, p.name);
+    if (fs.lstatSync(curFolder).isDirectory()) {
+      process.chdir(curFolder);
+      execGitCmd()
+    }
+  }
+}
+
+// run(targetPath);
+execute(targetPath);
