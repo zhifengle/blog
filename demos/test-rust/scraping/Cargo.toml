@@ -1,20 +1,2 @@
-[package]
-name = "scraping"
-version = "0.1.0"
-edition = "2021"
-
-[dependencies]
-reqwest = { version = "0.11", features = ["json"] }
-tokio = { version = "1", features = ["full"] }
-scraper= { version = "0.12"}
-serde = { version = "1", features = ["derive"] }
-serde_json = "1"
-lazy_static = "1"
-regex = "1"
-clap = "3.2.8"
-anyhow = "1.0"
-log = "0.4.17"
-env_logger = "0.9.0"
-dirs = "4.0.0"
-futures = "0.3.21"
-
+[workspace]
+members = [ "crates/*", "xmly" ]
