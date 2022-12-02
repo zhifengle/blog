@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>reflow</title>
+    <style>
+        .div1 {
+            width: 100px;
+            height: 100px;
+            background-color: deepskyblue;
+        }
+
+        .div2 {
+            width: 200px;
+            height: 200px;
+            background-color: pink;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="div1"></div>
+    <div class="div2"></div>
+    <script>
+        function main() {
+            const div1 = document.querySelector('.div1')
+
+            function div1Click() {
+                div1.style.height = '200px'
+            }
+
+            div1.addEventListener('click', div1Click)
+        }
+        main()
+    </script>
+</body>
+
+</html>

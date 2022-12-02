@@ -1,4 +1,5 @@
-import CanvasApp from './fiber-demo';
+import CanvasApp from './cube2';
+import './style.css';
 
 export default function App() {
   return (
