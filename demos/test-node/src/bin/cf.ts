@@ -2,6 +2,7 @@ import { readFileSync, writeFileSync } from 'fs';
 import { isIP } from 'net';
 import path from 'path';
 import { fetchInfo } from '../utils/fetchData';
+import { walk } from '../utils/file';
 
 async function asyncPool<T, U>(
   limit: number,
@@ -45,27 +46,46 @@ async function checkIp(ip: string, host: string) {
     // console.error(error);
   }
 }
-async function startCheck() {
-  // txt file path
-  const ipTxt = String.raw`xx`;
+async function getCheckResults(ipTxt: string, host = 'cloudflare.com') {
   const ipStr = readFileSync(ipTxt, 'utf-8');
   // host
-  const host = 'cloudflare.com';
   const check = async (ip: string) => {
     return await checkIp(ip, host);
   };
-  const ipArr = ipStr.split('\n').map((s) => s.trim()).filter(s => isIP(s) !== 0);
+  const ipArr = ipStr
+    .split('\n')
+    .map((s) => s.trim())
+    .filter((s) => isIP(s) !== 0);
 
-  const res = await asyncPool(
-    100,
-    ipArr,
-    check
-  );
+  const res = await asyncPool(100, ipArr, check);
   const results: string[] = ipArr.filter((v, idx) => res[idx]);
-  writeFileSync(
-    path.join(path.dirname(ipTxt), 'output.txt'),
-    results.join('\n')
-  );
+  return results;
+}
+async function main() {
+  const dir = String.raw`xxx`;
+  const host = 'zodgame.xyz';
+  const prefix = 'output';
+  const blackList = [
+    'Alibaba',
+    'China',
+    '中国',
+    'Tencent',
+    'UCloud',
+    'M247',
+    'Huawei',
+  ];
+  for await (const p of walk(dir, false)) {
+    if (
+      !blackList.some((s) => p.name.includes(s)) &&
+      p.name.includes('.txt') &&
+      !p.name.startsWith(prefix)
+    ) {
+      const results = await getCheckResults(path.join(p.path, p.name), host);
+      if (results.length) {
+        writeFileSync(path.join(p.path, 'output' + p.name), results.join('\n'));
+      }
+    }
+  }
 }
 
-startCheck();
+main();
