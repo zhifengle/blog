@@ -17,7 +17,7 @@ pub fn build_proxy_client() -> Client {
     } else if env::var("HTTPS_PROXY").is_ok() {
         proxy_url = env::var("HTTPS_PROXY").unwrap();
     }
-    let ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36";
+    let ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36";
     let client = reqwest::ClientBuilder::new()
         .user_agent(ua)
         .proxy(reqwest::Proxy::all(proxy_url).unwrap())
@@ -27,7 +27,7 @@ pub fn build_proxy_client() -> Client {
 }
 
 pub fn build_client() -> Client {
-    let ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36";
+    let ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36";
     let client = reqwest::ClientBuilder::new()
         .user_agent(ua)
         .build()
