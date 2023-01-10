@@ -21,6 +21,7 @@ pub fn build_proxy_client() -> Client {
     let client = reqwest::ClientBuilder::new()
         .user_agent(ua)
         .proxy(reqwest::Proxy::all(proxy_url).unwrap())
+        .cookie_store(true)
         .build()
         .unwrap();
     client
@@ -30,6 +31,7 @@ pub fn build_client() -> Client {
     let ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36";
     let client = reqwest::ClientBuilder::new()
         .user_agent(ua)
+        .cookie_store(true)
         .build()
         .unwrap();
     client

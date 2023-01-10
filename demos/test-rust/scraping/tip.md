@@ -11,6 +11,13 @@ rng.gen_range(0..arr.len())
 // ref: fn dsu_paulsign;
 Regex::new(r#"<input\s*type="hidden"\s*name="formhash"\s*value="([^"]+?)"\s*/?>"#).unwrap()
 ```
+
+## reqwest cookies
+[pfernie/reqwest_cookie_store](https://github.com/pfernie/reqwest_cookie_store)
+
+有的站点响应里面有 Set-Cookie
+- 使用 cookie_store
+
 ------------------------------------------
 
 ## south-plus
