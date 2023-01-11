@@ -1,83 +1,109 @@
-use serde_json::Value;
-use std::fs::{OpenOptions, self};
-use std::io::Read;
-use std::path::Path;
+mod json_engine;
 
-trait KvEngine {
+use chrono::{prelude::*, Duration};
+use serde_json::{json, Value};
+pub use json_engine::JsonEngine;
+
+pub trait KvEngine {
     fn set(&mut self, key: &str, value: Value) -> bool;
     fn get(&self, key: &str) -> Option<Value>;
     fn remove(&mut self, key: &str);
-    fn keys(&self) -> Vec<&String>;
+    fn keys(&self) -> Vec<String>;
 }
 
-struct JsonEngine<T: AsRef<Path>> {
-    filename: T,
-    config: Value,
+
+pub enum TimeOpt {
+    Day(u8),
+    // DD h min sec; 毫秒就不要了
+    Dhms(u8, u8, u8, u8),
 }
 
-fn read_json_file(filename: impl AsRef<Path>) -> anyhow::Result<Value> {
-    let mut file = OpenOptions::new()
-        .read(true)
-        .write(true)
-        .create(true)
-        .open(filename)?;
-    let mut contents = String::new();
-    file.read_to_string(&mut contents)?;
-    if contents.is_empty() {
-        contents = "{}".to_string();
-    }
-    let v: serde_json::Value = serde_json::from_str(&contents)?;
-    Ok(v)
+pub struct KvExpiration {
+    engine: Box<dyn KvEngine>,
+    prefix: String,
+    suffix: String,
+    bucket: String,
 }
-
-impl<T: AsRef<Path>> JsonEngine<T> {
-    pub fn new(filename: T) -> Self {
+impl KvExpiration {
+    pub fn new(engine: Box<dyn KvEngine>, prefix: String) -> Self {
         Self {
-            config: read_json_file(filename.as_ref()).unwrap(),
-            filename,
+            engine,
+            prefix,
+            suffix: "-expiration".to_string(),
+            bucket: "".to_string(),
         }
     }
-    fn write_file(&self, contents: &str) -> anyhow::Result<()> {
-        fs::write(&self.filename, contents)?;
-        Ok(())
+    pub fn json_engine(filename: String ,prefix: String) -> Self {
+        let engine = Box::new(JsonEngine::new(filename));
+        KvExpiration::new(engine, prefix)
     }
-}
-
-impl<T: AsRef<Path>> KvEngine for JsonEngine<T> {
-    fn set(&mut self, key: &str, value: Value) -> bool {
-        let config = self.config.as_object_mut().unwrap();
-        config.insert(key.to_string(), value);
-        // let config = serde_json::to_value(config).unwrap();
-        // let s = serde_json::to_string_pretty(&config)?;
-        // self.write_file(s.as_str())?;
-        // todo!()
+    fn gen_expiration_key(&self, key: &str) -> String {
+        format!("{}{}{}{}", &self.prefix, &self.bucket, key, &self.suffix)
+    }
+    fn gen_key(&self, key: &str) -> String {
+        format!("{}{}{}", &self.prefix, &self.bucket, key)
+    }
+    pub fn flush_expired(&mut self) {
+        let pre = format!("{}{}", &self.prefix, &self.bucket);
+        // 使用 Vec<&String> 报错
+        for key in self.engine.keys() {
+            if key.starts_with(&pre) && !key.ends_with(&self.suffix) {
+                let target_key = key.replace(&pre, "");
+                self.flush_expired_item(&target_key);
+            }
+        }
+    }
+    fn flush_expired_item(&mut self, key: &str) -> bool {
+        if self.is_expired(key) {
+            self.remove(key);
+            return true;
+        }
+        false
+    }
+    fn is_expired(&self, key: &str) -> bool {
+        let expr_key = self.gen_expiration_key(key);
+        let time = self.engine.get(&expr_key);
+        if time.is_none() {
+            return false;
+        }
+        let time = time.unwrap();
+        let time = time.as_str().unwrap();
+        let record_time = time.parse::<DateTime<Utc>>().unwrap();
+        let now: DateTime<Utc> = Utc::now();
+        now >= record_time
+    }
+    pub fn set(&mut self, key: &str, value: Value, opt: Option<TimeOpt>) -> bool {
+        self.engine.set(&self.gen_key(key), value);
+        if opt.is_some() {
+            let opt = opt.unwrap();
+            let d = match opt {
+                TimeOpt::Day(d) => Duration::days(d.into()),
+                TimeOpt::Dhms(d, h, m, s) => {
+                    Duration::days(d.into())
+                        + Duration::hours(h.into())
+                        + Duration::minutes(m.into())
+                        + Duration::seconds(s.into())
+                }
+            };
+            let time: DateTime<Utc> = Utc::now() + d;
+            self.engine
+                .set(&self.gen_expiration_key(key), json!(time.to_string()));
+        }
         true
     }
-
-    fn get(&self, key: &str) -> Option<Value> {
-        match self.config.get(key) {
-            Some(x) => Some(x.clone()),
-            None => None,
+    // @TODO get 应该是不能修改的; 合适的时机清理过期的 key
+    pub fn get(&self, key: &str) -> Option<Value> {
+        if self.is_expired(key) {
+            return None;
         }
+        // self.engine.get(&self.gen_key(key))
+        let v = self.engine.get(&self.gen_key(key));
+        println!("{:?}", v);
+        v
     }
-
-    fn remove(&mut self, key: &str) {
-        let config = self.config.as_object_mut().unwrap();
-        config.remove(key);
-    }
-
-    // @TODO convert &String to &str
-    fn keys(&self) -> Vec<&String> {
-        self.config.as_object().unwrap().keys().collect()
-    }
-}
-
-// 实现 Drop 后;是否需要清理
-// 使用 libc::atexit 更好。暂时利用 Drop
-impl<T: AsRef<Path>> Drop for JsonEngine<T> {
-    fn drop(&mut self) {
-        let s = serde_json::to_string_pretty(&self.config).unwrap();
-        self.write_file(s.as_str()).unwrap();
+    pub fn remove(&mut self, key: &str) {
+        self.engine.remove(&self.gen_key(key));
+        self.engine.remove(&self.gen_expiration_key(key));
     }
 }
 
@@ -86,10 +112,33 @@ mod tests {
     use serde_json::json;
 
     use super::*;
+    use std::{thread, time};
 
     #[test]
     fn t_get() {
         let mut s = JsonEngine::new("test-drop.json");
         s.set("11", json!("sfs"));
+    }
+    #[test]
+    fn t_kv() {
+        let engine = Box::new(JsonEngine::new("t.json"));
+        let mut kv = KvExpiration::new(engine, "MY_PREFIX_".to_string());
+        kv.set("foo", json!(22), Some(TimeOpt::Dhms(0, 0, 0, 1)));
+        let v = kv.get("foo");
+        assert_eq!(Some(json!(22)), v);
+        thread::sleep(time::Duration::from_millis(1100));
+        let v = kv.get("foo");
+        assert_eq!(None, v);
+        kv.flush_expired();
+    }
+    #[test]
+    fn t_time() {
+        let now: DateTime<Utc> = Utc::now();
+        let s = now.to_string();
+        let s2 = now.to_rfc2822();
+        let s3 = now.to_rfc3339();
+        let s4 = s.parse::<DateTime<Utc>>().unwrap();
+        println!("{}\n{}\n{}", &s, &s2, &s3);
+        assert_eq!(now, s4);
     }
 }
