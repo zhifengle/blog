@@ -71,14 +71,6 @@ async fn post_data(url_str: &str, fd: &Value, headers: Option<HeaderMap>) -> any
     Ok(res)
 }
 
-fn log_checkin_res(name: &str, res: anyhow::Result<()>) {
-    if res.is_ok() {
-        log::info!("[{}] 签到成功", name);
-    } else {
-        log::error!("[{}] {}", name, res.unwrap_err());
-    }
-}
-
 pub async fn discuz_apply_task(home: &str) -> anyhow::Result<()> {
     let url_obj = Url::parse(home)?.join("home.php?mod=task&do=apply&id=1")?;
     let host = url_obj.host().unwrap().to_string();
@@ -151,10 +143,10 @@ fn t_join_url() {
         .unwrap();
 
     let sign_page_url = url_obj.as_str();
-    println!("{}", sign_page_url);
+    assert_eq!(sign_page_url, "https://bbs.acgrip.com/dsu_paulsign-sign.html");
     let url_obj = url_obj
         .join("/plugin.php?id=dsu_paulsign:sign&operation=qiandao&infloat=1&inajax=1")
         .unwrap();
     let sign_page_url = url_obj.as_str();
-    println!("{}", sign_page_url);
+    assert_eq!(sign_page_url, "https://bbs.acgrip.com/plugin.php?id=dsu_paulsign:sign&operation=qiandao&infloat=1&inajax=1");
 }

@@ -1,9 +1,9 @@
 use ajax::HeaderMap;
 use anyhow::anyhow;
 
-use super::{fetch_text, post_data, log_checkin_res};
+use super::{fetch_text, post_data};
 
-async fn check_in() -> anyhow::Result<()> {
+pub async fn check_in() -> anyhow::Result<()> {
     let content = fetch_text("https://galge.fun").await?;
     if content.contains("已连续签到") {
         return Ok(());
@@ -20,8 +20,4 @@ async fn check_in() -> anyhow::Result<()> {
         return Err(anyhow!("2dfan 签到接口失败"));
     }
     Ok(())
-}
-
-pub async fn bonus() {
-    log_checkin_res("2dfan", check_in().await);
 }

@@ -66,7 +66,7 @@ impl<T: AsRef<Path>> KvEngine for JsonEngine<T> {
     }
 }
 
-// 实现 Drop 后;是否需要清理; 缺点是 panic 后，没法写入
+// 实现 Drop 后;是否需要清理; ctrl+c 终止时，没法写入
 // 使用 libc::atexit 更好。暂时利用 Drop
 impl<T: AsRef<Path>> Drop for JsonEngine<T> {
     fn drop(&mut self) {

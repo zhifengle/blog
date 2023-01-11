@@ -1,21 +1,14 @@
 mod json_engine;
 
 use chrono::{prelude::*, Duration};
-use serde_json::{json, Value};
 pub use json_engine::JsonEngine;
+use serde_json::{json, Value};
 
 pub trait KvEngine {
     fn set(&mut self, key: &str, value: Value) -> bool;
     fn get(&self, key: &str) -> Option<Value>;
     fn remove(&mut self, key: &str);
     fn keys(&self) -> Vec<String>;
-}
-
-
-pub enum TimeOpt {
-    Day(u8),
-    // DD h min sec; 毫秒就不要了
-    Dhms(u8, u8, u8, u8),
 }
 
 pub struct KvExpiration {
@@ -33,7 +26,7 @@ impl KvExpiration {
             bucket: "".to_string(),
         }
     }
-    pub fn json_engine(filename: String ,prefix: String) -> Self {
+    pub fn json_engine(filename: String, prefix: String) -> Self {
         let engine = Box::new(JsonEngine::new(filename));
         KvExpiration::new(engine, prefix)
     }
@@ -72,19 +65,18 @@ impl KvExpiration {
         let now: DateTime<Utc> = Utc::now();
         now >= record_time
     }
-    pub fn set(&mut self, key: &str, value: Value, opt: Option<TimeOpt>) -> bool {
+    pub fn set_next_day(&mut self, key: &str, value: Value) -> bool {
+        let now: DateTime<Utc> = Utc::now();
+        let next_day = Utc.with_ymd_and_hms(now.year(), now.month(), now.day() + 1, 1, 0, 0).unwrap();
+        self.set(key, value, Some(next_day - now))
+    }
+    pub fn set_expiration_days(&mut self, key: &str, value: Value, days: i64) -> bool {
+        self.set(key, value, Some(Duration::days(days)))
+    }
+    pub fn set(&mut self, key: &str, value: Value, duration: Option<Duration>) -> bool {
         self.engine.set(&self.gen_key(key), value);
-        if opt.is_some() {
-            let opt = opt.unwrap();
-            let d = match opt {
-                TimeOpt::Day(d) => Duration::days(d.into()),
-                TimeOpt::Dhms(d, h, m, s) => {
-                    Duration::days(d.into())
-                        + Duration::hours(h.into())
-                        + Duration::minutes(m.into())
-                        + Duration::seconds(s.into())
-                }
-            };
+        if duration.is_some() {
+            let d = duration.unwrap();
             let time: DateTime<Utc> = Utc::now() + d;
             self.engine
                 .set(&self.gen_expiration_key(key), json!(time.to_string()));
@@ -96,10 +88,7 @@ impl KvExpiration {
         if self.is_expired(key) {
             return None;
         }
-        // self.engine.get(&self.gen_key(key))
-        let v = self.engine.get(&self.gen_key(key));
-        println!("{:?}", v);
-        v
+        self.engine.get(&self.gen_key(key))
     }
     pub fn remove(&mut self, key: &str) {
         self.engine.remove(&self.gen_key(key));
@@ -123,7 +112,7 @@ mod tests {
     fn t_kv() {
         let engine = Box::new(JsonEngine::new("t.json"));
         let mut kv = KvExpiration::new(engine, "MY_PREFIX_".to_string());
-        kv.set("foo", json!(22), Some(TimeOpt::Dhms(0, 0, 0, 1)));
+        kv.set("foo", json!(22), Some(Duration::days(1)));
         let v = kv.get("foo");
         assert_eq!(Some(json!(22)), v);
         thread::sleep(time::Duration::from_millis(1100));
@@ -132,13 +121,22 @@ mod tests {
         kv.flush_expired();
     }
     #[test]
+    fn t_kv_panic() {
+        let engine = Box::new(JsonEngine::new("t-panic.json"));
+        let mut kv = KvExpiration::new(engine, "MY_PREFIX_".to_string());
+        kv.set("foo", json!(99), Some(Duration::days(1)));
+        // let v = kv.get("foo");
+        // assert_eq!(Some(json!(22)), v);
+        thread::sleep(time::Duration::from_secs(60));
+        panic!("error");
+    }
+    #[test]
     fn t_time() {
         let now: DateTime<Utc> = Utc::now();
         let s = now.to_string();
-        let s2 = now.to_rfc2822();
-        let s3 = now.to_rfc3339();
+        // let s2 = now.to_rfc2822();
+        // let s3 = now.to_rfc3339();
         let s4 = s.parse::<DateTime<Utc>>().unwrap();
-        println!("{}\n{}\n{}", &s, &s2, &s3);
         assert_eq!(now, s4);
     }
 }

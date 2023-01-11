@@ -12,6 +12,20 @@ rng.gen_range(0..arr.len())
 Regex::new(r#"<input\s*type="hidden"\s*name="formhash"\s*value="([^"]+?)"\s*/?>"#).unwrap()
 ```
 
+## panic cleanup
+https://stackoverflow.com/questions/43441047/whats-the-best-way-to-register-a-function-to-run-during-an-unexpected-exit-of-a
+
+使用 ctrl+c 退出时，Drop 写入文件不再可靠。
+
+[Detegr/rust-ctrlc](https://github.com/Detegr/rust-ctrlc)
+
+## chrono
+```rust
+use chrono::{prelude::*, Duration};
+
+let time: DateTime<Utc> = Utc::now() + d;
+```
+
 ## reqwest cookies
 [pfernie/reqwest_cookie_store](https://github.com/pfernie/reqwest_cookie_store)
 
