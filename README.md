@@ -12,3 +12,18 @@
 4. [动手实现并发请求控制](https://github.com/22earth/blog/issues/4)
 5. [使用 hooks 封装 antd table](https://github.com/22earth/blog/issues/5)
 6. [用户脚本获取 React 或 Vue 动态渲染内容踩坑记录](https://github.com/22earth/blog/issues/6)
+
+
+## demos
+存放一些代码和工具
+
+[test-node](./demos/test-node)
+> TS 写的小工具
+
+[test-js](./demos/test-ts)
+> JS 写的小工具
+
+[test-ts](./demos/test-ts)
+> TS 代码片段
+
+其它的是 Rust、Python、Java 等代码片段和笔记
