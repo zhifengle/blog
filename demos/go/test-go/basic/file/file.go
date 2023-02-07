@@ -3,6 +3,7 @@ package file
 import (
 	"bufio"
 	"os"
+	"path/filepath"
 )
 
 func ReadLines(path string) ([]string, error) {
@@ -27,4 +28,18 @@ func IsFileExist(filename string) bool {
 
 func GetCurrentPath() (string, error) {
 	return os.Getwd()
+}
+
+func FindTextFiles(dir string) ([]string, error) {
+	var files []string
+	err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if !info.IsDir() && filepath.Ext(path) == ".txt" {
+			files = append(files, path)
+		}
+		return nil
+	})
+	return files, err
 }
