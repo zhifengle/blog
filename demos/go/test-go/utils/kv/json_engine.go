@@ -2,7 +2,7 @@ package kv
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"os"
 )
 
 type JsonEngine struct {
@@ -21,12 +21,12 @@ func NewJsonEngine(filename string) *JsonEngine {
 
 func WriteJsonFile(filename string, config map[string]interface{}) error {
 	contents, _ := json.Marshal(config)
-	return ioutil.WriteFile(filename, []byte(contents), 0644)
+	return os.WriteFile(filename, []byte(contents), 0644)
 }
 
 func readJsonFile(filename string) (map[string]interface{}, error) {
 	config := make(map[string]interface{})
-	data, err := ioutil.ReadFile(filename)
+	data, err := os.ReadFile(filename)
 	if err == nil {
 		json.Unmarshal(data, &config)
 	}
