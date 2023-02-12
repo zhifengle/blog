@@ -6,10 +6,13 @@ from tutorial.items import YandeImageItem
 
 OUTPUT_PATH = r"D:\pic\yande_rank"
 
+
 class YandeRank(scrapy.Spider):
     custom_settings = {
         'DEFAULT_REQUEST_HEADERS': {
             'User-Agent':
+            # 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/110.0.5481.83 Mobile/15E148 Safari/604.1'
+            # 'Mozilla/5.0 (Linux; Android 10) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.5481.63 Mobile Safari/537.36'
             'Mozilla/5.0 (Macintosh; Intel Mac OS X 13_2) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.3 Safari/605.1.15'
         },
         'DOWNLOADER_MIDDLEWARES': {
@@ -24,18 +27,20 @@ class YandeRank(scrapy.Spider):
     name = "yande_rank"
 
     def start_requests(self):
-        year = 2020
-        for i in range(1, 13):
-            p = Path(rf"{OUTPUT_PATH}\{year}-{i:02d}")
-            if not p.exists():
-                p.mkdir(parents=True)
-            yield scrapy.Request(
-                f"https://yande.re/post/popular_by_month?month={i}&year={year}",
-                meta={
-                    'month': i,
-                    'year': year
-                },
-                callback=self.parse)
+        # @TODO 2007 - 2022
+
+        for year in range(2007, 2014):
+            for i in range(1, 13):
+                p = Path(rf"{OUTPUT_PATH}\{year}-{i:02d}")
+                if not p.exists():
+                    p.mkdir(parents=True)
+                yield scrapy.Request(
+                    f"https://yande.re/post/popular_by_month?month={i}&year={year}",
+                    meta={
+                        'month': i,
+                        'year': year
+                    },
+                    callback=self.parse)
 
     def parse(self, response):
         post_urls = response.css("a.thumb::attr(href)").getall()
