@@ -93,3 +93,8 @@ class UserSpider(scrapy.Spider):
         # user['name'] = user
 
         yield User(name=user, nickname=nickname, uid=uid, joindate=date)
+
+    # def get_request_with_proxy(self, url, callback=None, **kwargs):
+    #     req = scrapy.Request(url=url, callback=callback, **kwargs)
+    #     req.meta['proxy'] = "http://127.0.0.1:10809"
+    #     return req

@@ -24,6 +24,9 @@ class QuotesSpider(scrapy.Spider):
     #         f.write(response.body)
     #     self.log(f'saved file {filename}')
 
+    def __init__(self, path="output",*args, **kwargs):
+        super(QuotesSpider, self).__init__(args, **kwargs)
+
     def parse(self, response):
         for quote in response.css('div.quote'):
             yield {

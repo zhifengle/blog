@@ -2,3 +2,4 @@ quotes*.html
 quotes.json
 quotes.jl
 __pycache__
+.venv

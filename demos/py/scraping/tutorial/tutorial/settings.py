@@ -51,9 +51,10 @@ DEFAULT_REQUEST_HEADERS = {
 
 # Enable or disable downloader middlewares
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
-# DOWNLOADER_MIDDLEWARES = {
-#    'tutorial.middlewares.TutorialDownloaderMiddleware': 543,
-# }
+DOWNLOADER_MIDDLEWARES = {
+    #    'tutorial.middlewares.TutorialDownloaderMiddleware': 543,
+    #'tutorial.middlewares.ProxyMiddleware': 543,
+}
 
 # Enable or disable extensions
 # See https://docs.scrapy.org/en/latest/topics/extensions.html
@@ -64,8 +65,8 @@ DEFAULT_REQUEST_HEADERS = {
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
-    # 'tutorial.pipelines.TutorialPipeline': 300,
-    'tutorial.pipelines.BgmPipeline': 300,
+    #'tutorial.pipelines.TutorialPipeline': 300,
+    #'tutorial.pipelines.BgmPipeline': 300,
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)
