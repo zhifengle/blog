@@ -11,3 +11,7 @@ class User(scrapy.Item):
     nickname = scrapy.Field()
     uid = scrapy.Field()
     joindate = scrapy.Field()
+
+class YandeImageItem(scrapy.Item):
+    image_url = scrapy.Field()
+    image_name = scrapy.Field()

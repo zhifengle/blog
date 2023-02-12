@@ -5,7 +5,11 @@
 
 
 # useful for handling different item types with a single interface
-from itemadapter import ItemAdapter
+from pathlib import PurePosixPath
+from urllib.parse import urlparse
+
+from scrapy.pipelines.images import ImagesPipeline
+from scrapy import Request
 
 from .items import User
 
@@ -21,3 +25,9 @@ class BgmPipeline:
             print('================= pipe ============')
             pass
         return item
+
+class MyImagesPipeline(ImagesPipeline):
+    def get_media_requests(self, item, info):
+        yield Request(item['image_url'])
+    def file_path(self, request, response=None, info=None, *, item=None):
+        return item['image_name']
