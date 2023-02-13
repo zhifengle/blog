@@ -9,6 +9,7 @@ if __name__ == '__main__':
     os.chdir(cur_path)
     sys.path.append(cur_path)
 
-    execute(["scrapy", "crawl", "quotes", "-a", "path=c:\\temp\\quotes", "-o", "quotes.jsonl"])
+    # execute(["scrapy", "crawl", "quotes", "-a", "path=c:\\temp\\quotes", "-o", "quotes.jsonl"])
     # 提取 json
     # execute(["scrapy", "crawl", "yande_rank"])
+    execute(["scrapy", "crawl", "getchu_game"])
