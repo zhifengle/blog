@@ -12,4 +12,4 @@ if __name__ == '__main__':
     # execute(["scrapy", "crawl", "quotes", "-a", "path=c:\\temp\\quotes", "-o", "quotes.jsonl"])
     # 提取 json
     # execute(["scrapy", "crawl", "yande_rank"])
-    execute(["scrapy", "crawl", "getchu_game"])
+    execute(["scrapy", "crawl", "getchu_game", "-o", "getchu_game.jsonl"])

@@ -26,8 +26,23 @@ class BgmPipeline:
             pass
         return item
 
+
 class MyImagesPipeline(ImagesPipeline):
     def get_media_requests(self, item, info):
         yield Request(item['image_url'])
+
     def file_path(self, request, response=None, info=None, *, item=None):
         return item['image_name']
+
+
+class GetchuImagesPipeline(ImagesPipeline):
+    def get_media_requests(self, item, info):
+        yield Request(item['cover_url'], headers={'Referer': item['url']})
+
+    def file_path(self, request, response=None, info=None, *, item=None):
+        date_arr = item['release_date'].split('/')
+        name = PurePosixPath(urlparse(item['cover_url']).path).name
+        if len(date_arr) == 3:
+            ym = f"{date_arr[0]}-{int(date_arr[1]):02d}"
+            return f"{ym}/{name}"
+        return name
