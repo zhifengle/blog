@@ -29,7 +29,7 @@ function genWinrarCmd(config: CompressConfig) {
   // 加密文件名称 -hp
   // -ep1 只保留文件夹名字
   // -v3.8g 分卷 3.8g
-  return `"${WINRAR_PATH}" a ${vol} -r -rr3p -hp${password} -ep1 "${outputPath}" "${targetPath}"`;
+  return `"${WINRAR_PATH}" a ${vol} -r -rr3p -hp${password} -ibck -ep1 "${outputPath}" "${targetPath}"`;
 }
 function gen7zCmd(config: CompressConfig) {
   const { outputPath, targetPath, password, volume } = config;

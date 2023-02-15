@@ -2,12 +2,13 @@ import json
 import scrapy
 from urllib.parse import urlparse, parse_qs
 
-OUTPUT_PATH = r"C:\pic\getchu_game"
+OUTPUT_PATH = r"C:\pic\getchu_product"
 
 
 class GetchuProductItem(scrapy.Item):
     url = scrapy.Field()
     cover_url = scrapy.Field()
+    genre = scrapy.Field()
     title = scrapy.Field()
     brand = scrapy.Field()
     release_date = scrapy.Field()
@@ -39,7 +40,7 @@ def remove_end_brackets(text, bracket="（"):
     return text.split(bracket)[0].strip()
 
 
-class GetchuGame(scrapy.Spider):
+class GetchuProduct(scrapy.Spider):
     custom_settings = {
         'FEED_EXPORT_ENCODING': 'utf-8',
         'DEFAULT_REQUEST_HEADERS': {
@@ -53,14 +54,15 @@ class GetchuGame(scrapy.Spider):
         'DOWNLOAD_DELAY': 0.5,
         'IMAGES_STORE': OUTPUT_PATH,
     }
-    name = "getchu_game"
+    name = "getchu_product"
 
     def start_requests(self):
+        genre = getattr(self, 'genre', 'pc_soft')
         for year in range(2023, 2024):
             for i in range(1, 2):
                 ym = f"{year}-{i:02d}"
                 yield scrapy.Request(
-                    f"https://www.getchu.com/all/month_title.html?genre=pc_soft&gage=adult&year={year}&month={i}",
+                    f"https://www.getchu.com/all/month_title.html?genre={genre}&gage=adult&year={year}&month={i}",
                     cookies={'getchu_adalt_flag': 'getchu.com'},
                     meta={'ym': ym},
                     callback=self.parse,
@@ -84,6 +86,7 @@ class GetchuGame(scrapy.Spider):
         title = response.css("#soft-title::text").get()
         pid = parse_qs(urlparse(response.url).query).get("id")[0]
         cover_url = f"https://www.getchu.com/brandnew/{pid}/c{pid}package.jpg"
+        genre = getattr(self, 'genre', 'pc_soft')
         yield GetchuProductItem(
             title=deal_title(title),
             url=response.url,
@@ -94,4 +97,5 @@ class GetchuGame(scrapy.Spider):
             illustrator=info_map.get("原画"),
             story=story,
             raw_info=raw_info,
+            genre=genre,
         )
