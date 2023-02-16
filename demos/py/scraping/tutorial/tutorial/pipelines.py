@@ -5,7 +5,9 @@
 
 
 # useful for handling different item types with a single interface
+import json
 from pathlib import PurePosixPath
+import sqlite3
 from urllib.parse import urlparse
 
 from scrapy.pipelines.images import ImagesPipeline
@@ -46,3 +48,122 @@ class GetchuImagesPipeline(ImagesPipeline):
             ym = f"{date_arr[0]}-{int(date_arr[1]):02d}"
             return f"{ym}/{name}"
         return name
+
+
+class GetchuSqlitePipeline:
+    product_game_info_dict = {
+        'シナリオ': 'scenario',
+        'イラスト': 'illustrator',
+        '原画': 'illustrator',
+        '声優': 'voice_actor',
+        # 'システム': 'system',
+        # 'ボイス': 'voice',
+        # '動作環境': 'environment',
+        # 'サイズ': 'size',
+        '販売日': 'release_date',
+        '価格': 'price',
+        '定価': 'price',
+        'ブランド': 'brand',
+        # 'シリーズ': 'series',
+        # 'メーカー': 'maker',
+        # 'レーティング': 'rating',
+        'カテゴリ': 'category',
+        '音楽': 'music',
+        'アーティスト': 'artist',
+        'ジャンル': 'genre',
+    }
+
+    def open_spider(self, spider):
+        database_name = spider.settings.get('SQLITE_DB_PATH')
+        self.conn = sqlite3.connect(database_name)
+        self.cursor = self.conn.cursor()
+        self.cursor.execute(
+            '''
+            CREATE TABLE IF NOT EXISTS products(
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                title TEXT,
+                url TEXT,
+                cover_url TEXT,
+                release_date TEXT,
+                brand TEXT,
+                genre INTEGER)
+                '''
+        )
+        self.cursor.execute(
+            '''
+            CREATE TABLE IF NOT EXISTS product_game_info(
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                product_id INTEGER, 
+                title TEXT,
+                url TEXT,
+                cover_url TEXT,
+                release_date TEXT,
+                brand TEXT,
+
+                illustrator TEXT,
+                scenario TEXT,
+                price TEXT,
+                genre TEXT,
+                music TEXT,
+                artist TEXT,
+                voice_actor TEXT,
+                category TEXT,
+                description TEXT,
+                raw_info TEXT)
+            '''
+        )
+
+    def close_spider(self, spider):
+        self.conn.commit()
+        self.conn.close()
+
+    def process_item(self, item, spider):
+        # check item in db by url
+        res = self.cursor.execute(
+            'SELECT id FROM products WHERE url = ?', (item['url'],)
+        ).fetchone()
+        if res is not None:
+            return item
+
+        if item.get('title'):
+            self.cursor.execute(
+                'INSERT INTO products(title, url, cover_url, release_date, brand, genre) VALUES(?, ?, ?, ?, ?, ?)',
+                (
+                    item['title'],
+                    item['url'],
+                    item['cover_url'],
+                    item['release_date'],
+                    item['brand'],
+                    item['genre'],
+                ),
+            )
+            product_id = self.cursor.lastrowid
+            # genre 0 为游戏
+            if item['genre'] == 0:
+                self.cursor.execute(
+                    'INSERT INTO product_game_info(product_id, raw_info) VALUES(?, ?)',
+                    (product_id, item['raw_info']),
+                )
+                game_info_id = self.cursor.lastrowid
+                game_info = json.loads(item['raw_info'])
+                item_save_keys = [
+                    'title',
+                    'url',
+                    'cover_url',
+                    'release_date',
+                    'brand',
+                    'description',
+                ]
+                for k in item_save_keys:
+                    if k in item:
+                        self.cursor.execute(
+                            f'UPDATE product_game_info SET {k} = ? WHERE id = ?',
+                            (item[k], game_info_id),
+                        )
+                for k, v in game_info.items():
+                    if k in self.product_game_info_dict and v not in item_save_keys:
+                        self.cursor.execute(
+                            f'UPDATE product_game_info SET {self.product_game_info_dict[k]} = ? WHERE id = ?',
+                            (v, game_info_id),
+                        )
+        return item

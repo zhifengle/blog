@@ -3,6 +3,7 @@ import scrapy
 from urllib.parse import urlparse, parse_qs
 
 OUTPUT_PATH = r"C:\pic\getchu_product"
+GENRE_ARR = ['pc_soft', 'dvd_game', 'doujin', 'anime_dvd']
 
 
 class GetchuProductItem(scrapy.Item):
@@ -12,13 +13,11 @@ class GetchuProductItem(scrapy.Item):
     title = scrapy.Field()
     brand = scrapy.Field()
     release_date = scrapy.Field()
-    scenario = scrapy.Field()
-    illustrator = scrapy.Field()
-    story = scrapy.Field()
+    description = scrapy.Field()
     raw_info = scrapy.Field()
 
 
-def deal_title(title):
+def sanitize(title):
     return (
         title.strip()
         .replace("/", "_")
@@ -45,21 +44,28 @@ class GetchuProduct(scrapy.Spider):
         'FEED_EXPORT_ENCODING': 'utf-8',
         'DEFAULT_REQUEST_HEADERS': {
             'User-Agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/109.0'
             # 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/110.0.5481.83 Mobile/15E148 Safari/604.1'
             # 'Mozilla/5.0 (Linux; Android 10) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.5481.63 Mobile Safari/537.36'
-            'Mozilla/5.0 (Macintosh; Intel Mac OS X 13_2) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.3 Safari/605.1.15'
+            # 'Mozilla/5.0 (Macintosh; Intel Mac OS X 13_2) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.3 Safari/605.1.15'
         },
         'DOWNLOADER_MIDDLEWARES': {'tutorial.middlewares.ProxyMiddleware': 543},
-        'ITEM_PIPELINES': {'tutorial.pipelines.GetchuImagesPipeline': 1},
+        'ITEM_PIPELINES': {
+            'tutorial.pipelines.GetchuImagesPipeline': 1,
+            'tutorial.pipelines.GetchuSqlitePipeline': 300,
+        },
         'DOWNLOAD_DELAY': 0.5,
         'IMAGES_STORE': OUTPUT_PATH,
+        'SQLITE_DB_PATH': OUTPUT_PATH + r'\getchu_product.db',
     }
     name = "getchu_product"
 
     def start_requests(self):
         genre = getattr(self, 'genre', 'pc_soft')
-        for year in range(2023, 2024):
-            for i in range(1, 2):
+        if genre not in GENRE_ARR:
+            genre = GENRE_ARR[0]
+        for year in range(2010, 2022):
+            for i in range(1, 13):
                 ym = f"{year}-{i:02d}"
                 yield scrapy.Request(
                     f"https://www.getchu.com/all/month_title.html?genre={genre}&gage=adult&year={year}&month={i}",
@@ -81,21 +87,22 @@ class GetchuProduct(scrapy.Spider):
             if key:
                 value = ''.join(tr.css("td:last-child ::text").getall())
                 info_map[deal_info_key(key)] = value.strip()
+        info_map['ブランド'] = remove_end_brackets(info_map.get('ブランド', ''))
         raw_info = json.dumps(info_map, ensure_ascii=False)
-        story = ''.join(response.css(".tabletitle.tabletitle_1 + div ::text").getall())
+        description = ''.join(
+            response.css(".tabletitle.tabletitle_1 + div ::text").getall()
+        ).strip()
         title = response.css("#soft-title::text").get()
         pid = parse_qs(urlparse(response.url).query).get("id")[0]
         cover_url = f"https://www.getchu.com/brandnew/{pid}/c{pid}package.jpg"
         genre = getattr(self, 'genre', 'pc_soft')
         yield GetchuProductItem(
-            title=deal_title(title),
+            title=title.strip(),
             url=response.url,
             cover_url=cover_url,
-            brand=remove_end_brackets(info_map.get("ブランド", '')),
+            brand=info_map.get("ブランド", ''),
             release_date=info_map.get("発売日", ''),
-            scenario=info_map.get("シナリオ"),
-            illustrator=info_map.get("原画"),
-            story=story,
+            description=description,
             raw_info=raw_info,
-            genre=genre,
+            genre=GENRE_ARR.index(genre),
         )

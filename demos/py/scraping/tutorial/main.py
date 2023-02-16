@@ -9,7 +9,6 @@ if __name__ == '__main__':
     sys.path.append(cur_path)
 
     # execute(["scrapy", "crawl", "quotes", "-a", "path=c:\\temp\\quotes", "-o", "quotes.jsonl"])
-    # 提取 json
     # execute(["scrapy", "crawl", "yande_rank"])
     execute(
         [
@@ -17,8 +16,8 @@ if __name__ == '__main__':
             "crawl",
             "getchu_product",
             '-a',
-            "genre=anime_dvd",
-            "-o",
-            "getchu_product.jsonl",
+            "genre=pc_soft",
+            # "-o",
+            # "getchu_product.jsonl",
         ]
     )
