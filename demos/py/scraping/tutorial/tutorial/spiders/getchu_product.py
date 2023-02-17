@@ -38,6 +38,13 @@ def deal_info_key(key):
 def remove_end_brackets(text, bracket="（"):
     return text.split(bracket)[0].strip()
 
+def get_start_and_end(t_range):
+    t_range = t_range.split("-")
+    if len(t_range) == 0:
+        return 0, 0
+    if len(t_range) == 1:
+        return int(t_range[0]), int(t_range[0])
+    return int(t_range[0]), int(t_range[1])
 
 class GetchuProduct(scrapy.Spider):
     custom_settings = {
@@ -54,18 +61,21 @@ class GetchuProduct(scrapy.Spider):
             'tutorial.pipelines.GetchuImagesPipeline': 1,
             'tutorial.pipelines.GetchuSqlitePipeline': 300,
         },
-        'DOWNLOAD_DELAY': 0.5,
+        # 'DOWNLOAD_DELAY': 0.5,
         'IMAGES_STORE': OUTPUT_PATH,
+        'IMAGES_EXPIRES': 0,
         'SQLITE_DB_PATH': OUTPUT_PATH + r'\getchu_product.db',
     }
     name = "getchu_product"
 
     def start_requests(self):
         genre = getattr(self, 'genre', 'pc_soft')
+        year_range = get_start_and_end(getattr(self, 'year_range', '2010-2021'))
+        month_range = get_start_and_end(getattr(self, 'month_range', '1-12'))
         if genre not in GENRE_ARR:
             genre = GENRE_ARR[0]
-        for year in range(2010, 2022):
-            for i in range(1, 13):
+        for year in range(year_range[0], year_range[1] + 1):
+            for i in range(month_range[0], month_range[1] + 1):
                 ym = f"{year}-{i:02d}"
                 yield scrapy.Request(
                     f"https://www.getchu.com/all/month_title.html?genre={genre}&gage=adult&year={year}&month={i}",
