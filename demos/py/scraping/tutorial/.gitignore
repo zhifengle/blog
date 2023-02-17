@@ -3,3 +3,8 @@ quotes.json
 quotes.jl
 __pycache__
 .venv
+/dbs
+/eggs
+/project.egg-info
+/build
+/logs
