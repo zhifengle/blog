@@ -3,6 +3,7 @@ quotes.json
 quotes.jl
 __pycache__
 .venv
+.test
 /dbs
 /eggs
 /project.egg-info
