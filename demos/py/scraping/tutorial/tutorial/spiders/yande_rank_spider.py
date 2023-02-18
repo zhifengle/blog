@@ -21,7 +21,7 @@ class YandeRank(scrapy.Spider):
 
         for year in range(2007, 2014):
             for i in range(1, 13):
-                p = Path(rf"{OUTPUT_PATH}\{year}-{i:02d}")
+                p = Path(rf"{OUTPUT_PATH}/{year}-{i:02d}")
                 if not p.exists():
                     p.mkdir(parents=True)
                 yield scrapy.Request(
@@ -40,7 +40,7 @@ class YandeRank(scrapy.Spider):
         img_name = PurePosixPath(urlparse(img_url).path).name
         if response.meta['year'] and response.meta['month']:
             img_name = (
-                f"{response.meta['year']}-{response.meta['month']:02d}\{img_name}"
+                f"{response.meta['year']}-{response.meta['month']:02d}/{img_name}"
             )
         yield ImageItem(image_name=img_name, image_url=img_url)
 
@@ -67,16 +67,19 @@ class YandePost(scrapy.Spider):
         host = getattr(self, 'host', 'yande.re')
         tags = getattr(self, 'tags', '')
         url = getattr(self, 'url', '')
+        folder = f'{host}_popular_recent'
         if tags:
             url = f"https://{host}/post?tags={tags}"
+            folder = f'{host}_{tags}'
         elif url == '':
             url = f'https://{host}/post/popular_recent'
-        yield scrapy.Request(url, callback=self.parse)
+        yield scrapy.Request(url, callback=self.parse, meta={'folder': folder})
 
     def parse(self, response):
         img_urls = response.css("#post-list-posts li>a.directlink::attr(href)").getall()
         for url in img_urls:
             img_name = PurePosixPath(urlparse(url).path).name
+            img_name = f"{response.meta['folder']}/{img_name}"
             yield ImageItem(image_name=img_name, image_url=url)
         next_page = response.css("a.next_page::attr(href)").get()
         if next_page is not None:

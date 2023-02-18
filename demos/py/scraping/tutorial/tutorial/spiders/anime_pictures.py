@@ -3,6 +3,7 @@ from urllib.parse import urlparse, quote
 import scrapy
 
 from tutorial.items import ImageItem
+from tutorial.utils import sanitize_name
 
 
 class AnimePictures(scrapy.Spider):
@@ -19,6 +20,9 @@ class AnimePictures(scrapy.Spider):
 
     def start_requests(self):
         search_tag = getattr(self, 'tag', '')
+        if search_tag == '':
+            self.logger.error("No search tag provided")
+            return
         first_page_url = f"{self.api_url}?page=0&search_tag={quote(search_tag)}"
         yield scrapy.Request(
             first_page_url,
@@ -29,7 +33,6 @@ class AnimePictures(scrapy.Spider):
     def parse(self, response):
         search_tag = getattr(self, 'tag', '')
         data = response.json()
-        # data = json.loads(response.body)
         cur_page = data['page_number']
         if data['posts']:
             for post in data['posts']:
@@ -45,8 +48,9 @@ class AnimePictures(scrapy.Spider):
                 )
 
     def parse_img_post(self, response):
+        search_tag = getattr(self, 'tag', '')
         img_url = response.css("#rating > a.download_icon::attr(href)").get()
-        img_name = PurePosixPath(urlparse(img_url).path).name
+        img_name = f"{search_tag}/{PurePosixPath(urlparse(img_url).path).name}"
         yield ImageItem(image_name=img_name, image_url=img_url)
 
 class AnimePicturesTop(scrapy.Spider):
@@ -82,6 +86,7 @@ class AnimePicturesTop(scrapy.Spider):
                 )
 
     def parse_img_post(self, response):
+        t = getattr(self, 'type', 'day')
         img_url = response.css("#rating > a.download_icon::attr(href)").get()
-        img_name = PurePosixPath(urlparse(img_url).path).name
-        yield ImageItem(image_name=img_name, image_url=img_url)
+        img_name = f"{t}/{sanitize_name(PurePosixPath(urlparse(img_url).path).name)}"
+        yield ImageItem(image_name=img_name, image_url=img_url, referer=response.url)

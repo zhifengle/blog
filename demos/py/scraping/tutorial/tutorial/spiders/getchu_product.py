@@ -1,8 +1,9 @@
 import json
+from pathlib import Path
 import scrapy
 from urllib.parse import urlparse, parse_qs
 
-OUTPUT_PATH = r"C:\pic\getchu_product"
+OUTPUT_PATH = str(Path.home() / "Downloads/pic/getchu_product")
 GENRE_ARR = ['pc_soft', 'dvd_game', 'doujin', 'anime_dvd']
 
 
@@ -16,19 +17,6 @@ class GetchuProductItem(scrapy.Item):
     description = scrapy.Field()
     raw_info = scrapy.Field()
 
-
-def sanitize(title):
-    return (
-        title.strip()
-        .replace("/", "_")
-        .replace(":", "_")
-        .replace("?", "_")
-        .replace("*", "_")
-        .replace('"', "_")
-        .replace("<", "_")
-        .replace(">", "_")
-        .replace("|", "_")
-    )
 
 
 def deal_info_key(key):
@@ -64,7 +52,7 @@ class GetchuProduct(scrapy.Spider):
         # 'DOWNLOAD_DELAY': 0.5,
         'IMAGES_STORE': OUTPUT_PATH,
         'IMAGES_EXPIRES': 0,
-        'SQLITE_DB_PATH': OUTPUT_PATH + r'\getchu_product.db',
+        'SQLITE_DB_PATH': f"{OUTPUT_PATH}/getchu_product.db"
     }
     name = "getchu_product"
 

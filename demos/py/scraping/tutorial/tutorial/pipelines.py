@@ -31,7 +31,7 @@ class BgmPipeline:
 
 class MyImagesPipeline(ImagesPipeline):
     def get_media_requests(self, item, info):
-        yield Request(item['image_url'])
+        yield Request(item['image_url'], headers={'Referer': item.get('referer')})
 
     def file_path(self, request, response=None, info=None, *, item=None):
         return item['image_name']

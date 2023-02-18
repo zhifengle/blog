@@ -7,6 +7,19 @@ def patch_url(url, **kwargs):
         query=urlencode(dict(parse_qsl(url_obj.query), **kwargs))
     ).geturl()
 
+def sanitize_name(name):
+    return (
+        name.strip()
+        .replace("/", "_")
+        .replace(":", "_")
+        .replace("?", "_")
+        .replace("*", "_")
+        .replace('"', "_")
+        .replace("<", "_")
+        .replace(">", "_")
+        .replace("|", "_")
+    )
+
 
 if __name__ == "__main__":
     # ParseResult: netloc, fragment
