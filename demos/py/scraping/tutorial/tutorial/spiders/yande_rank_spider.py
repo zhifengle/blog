@@ -2,19 +2,12 @@ import scrapy
 from pathlib import PurePosixPath, Path
 from urllib.parse import urlparse
 
-from tutorial.items import YandeImageItem
+from tutorial.items import ImageItem
 
-OUTPUT_PATH = r"D:\pic\yande_rank"
-
+OUTPUT_PATH = str(Path.home() / "Downloads/pic/yande")
 
 class YandeRank(scrapy.Spider):
     custom_settings = {
-        'DEFAULT_REQUEST_HEADERS': {
-            'User-Agent':
-            # 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/110.0.5481.83 Mobile/15E148 Safari/604.1'
-            # 'Mozilla/5.0 (Linux; Android 10) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.5481.63 Mobile Safari/537.36'
-            'Mozilla/5.0 (Macintosh; Intel Mac OS X 13_2) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.3 Safari/605.1.15'
-        },
         'DOWNLOADER_MIDDLEWARES': {'tutorial.middlewares.ProxyMiddleware': 543},
         'ITEM_PIPELINES': {'tutorial.pipelines.MyImagesPipeline': 1},
         'DOWNLOAD_DELAY': 0.5,
@@ -49,7 +42,7 @@ class YandeRank(scrapy.Spider):
             img_name = (
                 f"{response.meta['year']}-{response.meta['month']:02d}\{img_name}"
             )
-        yield YandeImageItem(image_name=img_name, image_url=img_url)
+        yield ImageItem(image_name=img_name, image_url=img_url)
 
 
 class YandePost(scrapy.Spider):
@@ -65,7 +58,7 @@ class YandePost(scrapy.Spider):
         'DOWNLOADER_MIDDLEWARES': {'tutorial.middlewares.ProxyMiddleware': 543},
         'ITEM_PIPELINES': {'tutorial.pipelines.MyImagesPipeline': 1},
         'DOWNLOAD_DELAY': 0.5,
-        'IMAGES_STORE': r"D:\pic\yande_posts",
+        'IMAGES_STORE': str(Path.home() / 'Downloads/pic/yande_post'),
         'IMAGES_EXPIRES': 0,
     }
     name = "yande_post"
@@ -84,7 +77,7 @@ class YandePost(scrapy.Spider):
         img_urls = response.css("#post-list-posts li>a.directlink::attr(href)").getall()
         for url in img_urls:
             img_name = PurePosixPath(urlparse(url).path).name
-            yield YandeImageItem(image_name=img_name, image_url=url)
+            yield ImageItem(image_name=img_name, image_url=url)
         next_page = response.css("a.next_page::attr(href)").get()
         if next_page is not None:
             yield response.follow(next_page, callback=self.parse)
