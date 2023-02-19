@@ -1,8 +1,9 @@
 import scrapy
 from pathlib import PurePosixPath, Path
-from urllib.parse import urlparse
+from urllib.parse import unquote, urlparse
 
 from tutorial.items import ImageItem
+from tutorial.utils import sanitize_name
 
 OUTPUT_PATH = str(Path.home() / "Downloads/pic/yande")
 
@@ -37,7 +38,7 @@ class YandeRank(scrapy.Spider):
 
     def parse_post(self, response):
         img_url = response.css("a#highres::attr(href)").get()
-        img_name = PurePosixPath(urlparse(img_url).path).name
+        img_name = unquote(PurePosixPath(urlparse(img_url).path).name)
         if response.meta['year'] and response.meta['month']:
             img_name = (
                 f"{response.meta['year']}-{response.meta['month']:02d}/{img_name}"
@@ -49,11 +50,11 @@ class YandePost(scrapy.Spider):
     custom_settings = {
         'DEFAULT_REQUEST_HEADERS': {
             'User-Agent': 
-            # 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:108.0) Gecko/20100101 Firefox/108.0'
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:108.0) Gecko/20100101 Firefox/108.0'
             # 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/110.0.5481.83 Mobile/15E148 Safari/604.1'
             # 'Mozilla/5.0 (Linux; Android 10) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.5481.63 Mobile Safari/537.36'
             # 'Mozilla/5.0 (Macintosh; Intel Mac OS X 13_2) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.3 Safari/605.1.15'
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36 Edg/110.0.1587.49'
+            # 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36 Edg/110.0.1587.49'
         },
         'DOWNLOADER_MIDDLEWARES': {'tutorial.middlewares.ProxyMiddleware': 543},
         'ITEM_PIPELINES': {'tutorial.pipelines.MyImagesPipeline': 1},
@@ -62,24 +63,25 @@ class YandePost(scrapy.Spider):
         'IMAGES_EXPIRES': 0,
     }
     name = "yande_post"
+    folder = 'yande.re'
 
     def start_requests(self):
         host = getattr(self, 'host', 'yande.re')
         tags = getattr(self, 'tags', '')
         url = getattr(self, 'url', '')
-        folder = f'{host}_popular_recent'
+        self.folder = f'{host}_popular_recent'
         if tags:
             url = f"https://{host}/post?tags={tags}"
-            folder = f'{host}_{tags}'
+            self.folder = f'{host}_{tags}'
         elif url == '':
             url = f'https://{host}/post/popular_recent'
-        yield scrapy.Request(url, callback=self.parse, meta={'folder': folder})
+        yield scrapy.Request(url, callback=self.parse)
 
     def parse(self, response):
         img_urls = response.css("#post-list-posts li>a.directlink::attr(href)").getall()
         for url in img_urls:
-            img_name = PurePosixPath(urlparse(url).path).name
-            img_name = f"{response.meta['folder']}/{img_name}"
+            img_name = unquote(PurePosixPath(urlparse(url).path).name)
+            img_name = f"{sanitize_name(self.folder)}/{img_name}"
             yield ImageItem(image_name=img_name, image_url=url)
         next_page = response.css("a.next_page::attr(href)").get()
         if next_page is not None:

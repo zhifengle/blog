@@ -1,5 +1,5 @@
 from pathlib import Path, PurePosixPath
-from urllib.parse import urlparse, quote
+from urllib.parse import urlparse, quote, unquote
 import scrapy
 
 from tutorial.items import ImageItem
@@ -50,7 +50,9 @@ class AnimePictures(scrapy.Spider):
     def parse_img_post(self, response):
         search_tag = getattr(self, 'tag', '')
         img_url = response.css("#rating > a.download_icon::attr(href)").get()
-        img_name = f"{search_tag}/{PurePosixPath(urlparse(img_url).path).name}"
+        img_name = PurePosixPath(urlparse(img_url).path).name
+        img_name = sanitize_name(unquote(img_name))
+        img_name = f"{search_tag}/{img_name}"
         yield ImageItem(image_name=img_name, image_url=img_url)
 
 class AnimePicturesTop(scrapy.Spider):
@@ -88,5 +90,7 @@ class AnimePicturesTop(scrapy.Spider):
     def parse_img_post(self, response):
         t = getattr(self, 'type', 'day')
         img_url = response.css("#rating > a.download_icon::attr(href)").get()
-        img_name = f"{t}/{sanitize_name(PurePosixPath(urlparse(img_url).path).name)}"
+        img_name = PurePosixPath(urlparse(img_url).path).name
+        img_name = sanitize_name(unquote(img_name))
+        img_name = f"{t}/{img_name}"
         yield ImageItem(image_name=img_name, image_url=img_url, referer=response.url)
