@@ -3,6 +3,8 @@ from pathlib import Path
 import scrapy
 from urllib.parse import urlparse, parse_qs
 
+from tutorial.utils import get_start_and_end
+
 OUTPUT_PATH = str(Path.home() / "Downloads/pic/getchu_product")
 GENRE_ARR = ['pc_soft', 'dvd_game', 'doujin', 'anime_dvd']
 
@@ -26,13 +28,6 @@ def deal_info_key(key):
 def remove_end_brackets(text, bracket="（"):
     return text.split(bracket)[0].strip()
 
-def get_start_and_end(t_range):
-    t_range = t_range.split("-")
-    if len(t_range) == 0:
-        return 0, 0
-    if len(t_range) == 1:
-        return int(t_range[0]), int(t_range[0])
-    return int(t_range[0]), int(t_range[1])
 
 class GetchuProduct(scrapy.Spider):
     custom_settings = {

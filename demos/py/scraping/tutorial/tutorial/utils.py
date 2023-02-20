@@ -20,6 +20,13 @@ def sanitize_name(name):
         .replace("|", "_")
     )
 
+def get_start_and_end(t_range):
+    t_range = t_range.split("-")
+    if len(t_range) == 0:
+        return 0, 0
+    if len(t_range) == 1:
+        return int(t_range[0]), int(t_range[0])
+    return int(t_range[0]), int(t_range[1])
 
 if __name__ == "__main__":
     # ParseResult: netloc, fragment

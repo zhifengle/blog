@@ -3,7 +3,7 @@ from pathlib import PurePosixPath, Path
 from urllib.parse import unquote, urlparse
 
 from tutorial.items import ImageItem
-from tutorial.utils import sanitize_name
+from tutorial.utils import get_start_and_end, sanitize_name
 
 OUTPUT_PATH = str(Path.home() / "Downloads/pic/yande")
 
@@ -18,10 +18,11 @@ class YandeRank(scrapy.Spider):
 
     def start_requests(self):
         host = getattr(self, 'host', 'yande.re')
-        # @TODO 2007 - 2022
+        year_range = get_start_and_end(getattr(self, 'year_range', '2007-2022'))
+        month_range = get_start_and_end(getattr(self, 'month_range', '1-12'))
 
-        for year in range(2007, 2014):
-            for i in range(1, 13):
+        for year in range(year_range[0], year_range[1] + 1):
+            for i in range(month_range[0], month_range[1] + 1):
                 p = Path(rf"{OUTPUT_PATH}/{year}-{i:02d}")
                 if not p.exists():
                     p.mkdir(parents=True)
