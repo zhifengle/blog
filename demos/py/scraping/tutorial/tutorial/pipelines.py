@@ -167,3 +167,64 @@ class GetchuSqlitePipeline:
                             (v, game_info_id),
                         )
         return item
+
+
+class NyaaSqlitePipeline:
+    def open_spider(self, spider):
+        database_name = spider.settings.get('SQLITE_DB_PATH')
+        self.conn = sqlite3.connect(database_name)
+        self.cursor = self.conn.cursor()
+        self.cursor.execute(
+            '''
+            CREATE TABLE IF NOT EXISTS nyaa(
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                title TEXT,
+                url TEXT,
+                torrent_url TEXT,
+                category TEXT,
+                magnet TEXT,
+                size TEXT,
+                date TEXT,
+                seeders INTEGER,
+                leechers INTEGER,
+                completed INTEGER
+            )
+                '''
+        )
+
+    def close_spider(self, spider):
+        self.conn.commit()
+        self.conn.close()
+
+    def process_item(self, item, spider):
+        # check item in db by url
+        res = self.cursor.execute(
+            'SELECT id FROM nyaa WHERE url = ?', (item['url'],)
+        ).fetchone()
+        if res is not None:
+            update_keys = ['seeders', 'leechers', 'completed']
+            for k in update_keys:
+                if k in item:
+                    self.cursor.execute(
+                        f'UPDATE nyaa SET {k} = ? WHERE id = ?',
+                        (item[k], res[0]),
+                    )
+            return item
+
+        if item.get('title'):
+            self.cursor.execute(
+                'INSERT INTO nyaa(title, url, torrent_url, category, magnet, size, date, seeders, leechers, completed) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                (
+                    item['title'],
+                    item['url'],
+                    item['torrent_url'],
+                    item['category'],
+                    item['magnet'],
+                    item['size'],
+                    item['date'],
+                    item['seeders'],
+                    item['leechers'],
+                    item['completed'],
+                ),
+            )
+        return item
