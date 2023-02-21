@@ -3,6 +3,7 @@
 # See documentation in:
 # https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 
+import os
 from scrapy import signals
 
 # useful for handling different item types with a single interface
@@ -104,4 +105,6 @@ class TutorialDownloaderMiddleware:
 
 class ProxyMiddleware(object):
     def process_request(self, request, spider):
-        request.meta['proxy'] = 'http://127.0.0.1:7891'
+        # check os is Windows
+        if os.name == 'nt':
+            request.meta['proxy'] = 'http://127.0.0.1:7891'
