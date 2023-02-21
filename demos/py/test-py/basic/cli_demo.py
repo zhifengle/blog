@@ -1,7 +1,5 @@
 import argparse
 
-# Manning.Tiny.Python.Projects.2020.7
-
 
 def get_args():
     """Get the command-line arguments"""
