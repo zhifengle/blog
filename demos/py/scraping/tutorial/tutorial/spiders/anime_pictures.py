@@ -1,4 +1,5 @@
 from pathlib import Path, PurePosixPath
+from random import random
 from urllib.parse import urlparse, quote, unquote
 import scrapy
 
@@ -20,10 +21,12 @@ class AnimePictures(scrapy.Spider):
 
     def start_requests(self):
         search_tag = getattr(self, 'tag', '')
+        start_num = int(getattr(self, 'start', '0'))
+        query = getattr(self, 'query', None)
         if search_tag == '':
             self.logger.error("No search tag provided")
             return
-        first_page_url = f"{self.api_url}?page=0&search_tag={quote(search_tag)}"
+        first_page_url = self.gen_api_page_url(search_tag, page=start_num, query=query)
         yield scrapy.Request(
             first_page_url,
             headers={'Content-Type': 'application/json'},
@@ -32,28 +35,49 @@ class AnimePictures(scrapy.Spider):
 
     def parse(self, response):
         search_tag = getattr(self, 'tag', '')
+        query = getattr(self, 'query', None)
+        end_num = getattr(self, 'end', None)
+        if end_num is not None:
+            end_num = int(end_num)
         data = response.json()
         cur_page = data['page_number']
         if data['posts']:
             for post in data['posts']:
+                # yield scrapy.Request(
+                #     f"https://anime-pictures.net/posts/{post['id']}",
+                #     callback=self.parse_img_post,
+                # )
+                # test only
+                if int(post['id']) == 768563:
+                    print(type(post['id']))
+                    yield scrapy.Request(
+                        f"https://anime-pictures.net/posts/{post['id']}",
+                        callback=self.parse_img_post,
+                    )
+            if cur_page < data['max_pages'] and (end_num is None or cur_page < end_num):
                 yield scrapy.Request(
-                    f"https://anime-pictures.net/posts/{post['id']}",
-                    callback=self.parse_img_post,
-                )
-            if cur_page < data['max_pages']:
-                yield scrapy.Request(
-                    f"https://anime-pictures.net/api/v3/posts?page={cur_page+1}&search_tag={quote(search_tag)}",
+                    self.gen_api_page_url(search_tag, cur_page + 1, query=query),
                     headers={'Content-Type': 'application/json'},
                     callback=self.parse,
                 )
 
     def parse_img_post(self, response):
         search_tag = getattr(self, 'tag', '')
-        img_url = response.css("#rating > a.download_icon::attr(href)").get()
+        img_url = response.css("#big_preview_cont > a::attr(href)").get()
+        # randomize the image url to avoid 403
+        # if random() > 0.9:
+        #     img_url = response.css("#rating > a.download_icon::attr(href)").get()
         img_name = PurePosixPath(urlparse(img_url).path).name
         img_name = sanitize_name(unquote(img_name))
         img_name = f"{search_tag}/{img_name}"
-        yield ImageItem(image_name=img_name, image_url=img_url)
+        yield ImageItem(image_name=img_name, image_url=img_url, referer=response.url)
+
+    def gen_api_page_url(self, search_tag, page=0, query=None):
+        url = f"{self.api_url}?page={page}&search_tag={quote(search_tag)}"
+        if query:
+            url = f"{url}&{query}"
+        return url
+
 
 class AnimePicturesTop(scrapy.Spider):
     custom_settings = {
