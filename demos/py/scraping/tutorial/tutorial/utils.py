@@ -10,14 +10,14 @@ def patch_url(url, **kwargs):
 def sanitize_name(name):
     return (
         name.strip()
-        .replace("/", "_")
-        .replace(":", "_")
-        .replace("?", "_")
-        .replace("*", "_")
-        .replace('"', "_")
-        .replace("<", "_")
-        .replace(">", "_")
-        .replace("|", "_")
+        .replace("/", "%2F")
+        .replace(":", "%3A")
+        .replace("?", "%3F")
+        .replace("*", "%2A")
+        .replace('"', "%22")
+        .replace("<", "%3C")
+        .replace(">", "%3E")
+        .replace("|", "%7C")
     )
 
 def get_start_and_end(t_range):
