@@ -43,17 +43,10 @@ class AnimePictures(scrapy.Spider):
         cur_page = data['page_number']
         if data['posts']:
             for post in data['posts']:
-                # yield scrapy.Request(
-                #     f"https://anime-pictures.net/posts/{post['id']}",
-                #     callback=self.parse_img_post,
-                # )
-                # test only
-                if int(post['id']) == 768563:
-                    print(type(post['id']))
-                    yield scrapy.Request(
-                        f"https://anime-pictures.net/posts/{post['id']}",
-                        callback=self.parse_img_post,
-                    )
+                yield scrapy.Request(
+                    f"https://anime-pictures.net/posts/{post['id']}",
+                    callback=self.parse_img_post,
+                )
             if cur_page < data['max_pages'] and (end_num is None or cur_page < end_num):
                 yield scrapy.Request(
                     self.gen_api_page_url(search_tag, cur_page + 1, query=query),
