@@ -23,6 +23,15 @@ class AnimePictures(scrapy.Spider):
         search_tag = getattr(self, 'tag', '')
         start_num = int(getattr(self, 'start', '0'))
         query = getattr(self, 'query', None)
+        post_ids = getattr(self, 'post_ids', None)
+        if post_ids is not None:
+            post_ids = post_ids.split(',')
+            for post_id in post_ids:
+                yield scrapy.Request(
+                    f"https://anime-pictures.net/posts/{post_id}",
+                    callback=self.parse_img_post,
+                )
+            return
         if search_tag == '':
             self.logger.error("No search tag provided")
             return
