@@ -81,6 +81,9 @@ class YandePost(scrapy.Spider):
                     callback=self.parse_post,
                 )
             return
+        if '/post/show' in url:
+            yield scrapy.Request(url, callback=self.parse_post)
+            return
         if tags:
             url = f"https://{host}/post?tags={tags}"
             # 去除部分筛选用的 tag
@@ -109,6 +112,9 @@ class YandePost(scrapy.Spider):
         else:
             img_name = f"{sanitize_name(self.folder)}/{sanitize_name(img_name)}"
         yield ImageItem(image_name=img_name, image_url=img_url, referer=response.url)
+        child_post_urls = response.css("#post-view > .status-notice>a[href^='/post/show']::attr(href)").getall()
+        for child_post_url in child_post_urls:
+            yield response.follow(child_post_url, callback=self.parse_post)
 
     def get_failed_post_ids(self, pic_path):
         import os
