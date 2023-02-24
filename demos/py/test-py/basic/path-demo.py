@@ -25,3 +25,9 @@ if __name__ == '__main__':
     # glob py file
     for p in (this_dir).glob("*.py"):
         print(f'{p.name}')
+    # home dir
+    home_dir = Path.home() # or Path(os.path.expanduser('~'))
+    config_file = home_dir / 'node-site-config.json'
+    # check if file exists
+    if config_file.exists():
+        print(config_file.read_text())

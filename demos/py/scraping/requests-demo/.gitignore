@@ -1,0 +1,8 @@
+__pycache__
+.venv
+.test
+/dbs
+/eggs
+/project.egg-info
+/build
+/logs
