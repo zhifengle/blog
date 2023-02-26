@@ -34,6 +34,10 @@ def get_start_and_end(t_range):
         return int(t_range[0]), int(t_range[0])
     return int(t_range[0]), int(t_range[1])
 
+def is_target_str(str_arr, target_str):
+    return any([s in target_str for s in str_arr])
+
+
 if __name__ == "__main__":
     # ParseResult: netloc, fragment
 

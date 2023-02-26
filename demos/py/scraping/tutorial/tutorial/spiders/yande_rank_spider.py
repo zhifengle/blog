@@ -4,7 +4,7 @@ from pathlib import PurePosixPath, Path
 from urllib.parse import unquote, urlparse
 
 from tutorial.items import ImageItem
-from tutorial.utils import get_start_and_end, sanitize_name
+from tutorial.utils import get_start_and_end, patch_url, sanitize_name
 
 OUTPUT_PATH = str(Path.home() / "Downloads/pic/yande")
 
@@ -67,8 +67,7 @@ class YandeRank(scrapy.Spider):
 class YandePost(scrapy.Spider):
     custom_settings = {
         'DEFAULT_REQUEST_HEADERS': {
-            'User-Agent':
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:108.0) Gecko/20100101 Firefox/108.0'
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:108.0) Gecko/20100101 Firefox/108.0'
             # 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/110.0.5481.83 Mobile/15E148 Safari/604.1'
             # 'Mozilla/5.0 (Linux; Android 10) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.5481.63 Mobile Safari/537.36'
             # 'Mozilla/5.0 (Macintosh; Intel Mac OS X 13_2) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.3 Safari/605.1.15'
@@ -211,3 +210,89 @@ class YandePost(scrapy.Spider):
                     post_id = search_result.group(1)
                     failed_post_ids.append(post_id)
         return failed_post_ids
+
+
+class YandePostJson(scrapy.Spider):
+    custom_settings = {
+        'DEFAULT_REQUEST_HEADERS': {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:108.0) Gecko/20100101 Firefox/108.0'
+            # 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/110.0.5481.83 Mobile/15E148 Safari/604.1'
+            # 'Mozilla/5.0 (Linux; Android 10) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.5481.63 Mobile Safari/537.36'
+            # 'Mozilla/5.0 (Macintosh; Intel Mac OS X 13_2) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.3 Safari/605.1.15'
+            # 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36 Edg/110.0.1587.49'
+        },
+        'DOWNLOADER_MIDDLEWARES': {'tutorial.middlewares.ProxyMiddleware': 543},
+        'ITEM_PIPELINES': {
+            'tutorial.pipelines.YandeImagesPipeline': 1,
+            'tutorial.pipelines.YandePostSqlitePipeline': 3,
+        },
+        'DOWNLOAD_DELAY': 0.5,
+        # 'IMAGES_STORE': str(Path.home() / 'Downloads/pic/yande_post'),
+        'IMAGES_STORE': str(Path('G:\\') / 'Downloads/pic/yande_post'),
+        'IMAGES_EXPIRES': 0,
+        'SQLITE_DB_PATH': str(Path('G:\\') / 'Downloads/pic/yande_post/posts_json.sqlite'),
+    }
+    name = "yande_post_json"
+    folder = 'yande.re'
+
+    def start_requests(self):
+        host = getattr(self, 'host', 'yande.re')
+        url = getattr(self, 'url', f"https://{host}/post.json?page=1&limit=100")
+        tags = getattr(self, 'tags', '')
+        if tags:
+            url = patch_url(url, tags=tags)
+            self.folder = host
+        yield scrapy.Request(url, callback=self.parse)
+
+    def parse(self, response):
+        posts_arr = response.json()
+        if len(posts_arr) == 0:
+            return
+        for post_obj in posts_arr:
+            yield self.get_post_item(post_obj)
+        cur_page = re.match(r'.*page=(\d+).*', response.url).group(1)
+        if cur_page is None:
+            cur_page = 1
+        yield response.follow(
+            patch_url(response.url, page=int(cur_page) + 1), callback=self.parse
+        )
+
+    def get_post_item(self, post_obj):
+        status = post_obj.get('status')
+        if status == 'deleted':
+            return
+        image_url = post_obj.get('file_url')
+        jpeg_url = post_obj.get('jpeg_url')
+        if jpeg_url is not None:
+            image_url = jpeg_url
+        if image_url is None:
+            return
+        image_name = unquote(PurePosixPath(urlparse(image_url).path).name)
+        pic_path = getattr(self, 'pic_path', None)
+        if pic_path:
+            image_name = f"{Path(pic_path).name}/{sanitize_name(image_name)}"
+        else:
+            image_name = f"{sanitize_name(self.folder)}/{sanitize_name(image_name)}"
+        post_item = YandePostItem(
+            post_id=post_obj['id'],
+            tags=post_obj.get('tags', ''),
+            image_name=image_name,
+            image_url=image_url,
+        )
+        opt_keys = [
+            'creator_id',
+            'created_at',
+            'rating',
+            'score',
+            'source',
+            'has_children',
+            'parent_id',
+        ]
+        for key in opt_keys:
+            if key in post_obj:
+                post_item[key] = post_obj[key]
+        if 'width' in post_obj and 'height' in post_obj:
+            post_item['size'] = f"{post_obj['width']}x{post_obj['height']}"
+        if 'author' in post_obj:
+            post_item['creator'] = post_obj['author']
+        return post_item
