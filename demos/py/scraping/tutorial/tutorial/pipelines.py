@@ -228,3 +228,87 @@ class NyaaSqlitePipeline:
                 ),
             )
         return item
+
+
+class YandePostSqlitePipeline:
+    def open_spider(self, spider):
+        database_name = spider.settings.get('SQLITE_DB_PATH')
+        self.conn = sqlite3.connect(database_name)
+        self.cursor = self.conn.cursor()
+        self.cursor.execute(
+            '''
+            CREATE TABLE IF NOT EXISTS yande_post(
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                post_id INTEGER,
+                parent_id INTEGER,
+                has_children INTEGER,
+                tags TEXT,
+                author TEXT,
+                creator TEXT,
+                creator_id INTEGER,
+                created_at TEXT,
+                size TEXT,
+                source TEXT,
+                rating TEXT,
+                score INTEGER,
+                image_url TEXT,
+                image_name TEXT)
+                '''
+        )
+        self.counter = 0
+
+    def close_spider(self, spider):
+        self.conn.commit()
+        self.conn.close()
+
+    def process_item(self, item, spider):
+        # check item in db by url
+        res = self.cursor.execute(
+            'SELECT id FROM yande_post WHERE post_id = ?', (item['post_id'],)
+        ).fetchone()
+        if res is not None:
+            return item
+
+        if item.get('post_id'):
+            self.cursor.execute(
+                'INSERT INTO yande_post(post_id, image_url, image_name) VALUES(?, ?, ?)',
+                (
+                    item['post_id'],
+                    item['image_url'],
+                    item['image_name'],
+                ),
+            )
+            row_id = self.cursor.lastrowid
+            opt_keys = [
+                'parent_id',
+                'has_children',
+                'tags',
+                'author',
+                'creator',
+                'creator_id',
+                'created_at',
+                'size',
+                'source',
+                'rating',
+                'score',
+            ]
+            for k in opt_keys:
+                if k in item:
+                    self.cursor.execute(
+                        f'UPDATE yande_post SET {k} = ? WHERE id = ?',
+                        (item[k], row_id),
+                    )
+        self.counter += 1
+        if self.counter % 100 == 0:
+            self.conn.commit()
+        return item
+
+class YandeImagesPipeline(ImagesPipeline):
+    def get_media_requests(self, item, info):
+        score = int(item.get('score', 0))
+        if score < 100:
+            return
+        yield Request(item['image_url'], headers={'Referer': item.get('referer')})
+
+    def file_path(self, request, response=None, info=None, *, item=None):
+        return item['image_name']

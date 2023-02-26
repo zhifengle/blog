@@ -1,4 +1,5 @@
-from urllib.parse import urlparse, urlencode, parse_qsl
+from pathlib import Path
+from urllib.parse import unquote, urlparse, urlencode, parse_qsl
 
 
 def patch_url(url, **kwargs):
@@ -19,6 +20,11 @@ def sanitize_name(name):
         .replace(">", "%3E")
         .replace("|", "%7C")
     )
+
+def rename_quote_files(path):
+    for file in Path(path).iterdir():
+        new_name = sanitize_name(unquote(file.name))
+        file.rename(file.parent / new_name)
 
 def get_start_and_end(t_range):
     t_range = t_range.split("-")
