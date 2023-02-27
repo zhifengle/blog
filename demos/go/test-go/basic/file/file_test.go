@@ -1,6 +1,9 @@
 package file
 
-import "testing"
+import (
+	"os"
+	"testing"
+)
 
 func TestFile(t *testing.T) {
 	// ReadLines
@@ -19,4 +22,14 @@ func TestFile(t *testing.T) {
 		t.Error(err)
 	}
 	t.Log(path)
+}
+
+func TestBaseAndDirName(t *testing.T) {
+	homeDir, _ := os.UserHomeDir()
+	// config := homeDir + `\.config`
+	config := homeDir + "/.config"
+	// Basename
+	t.Log(Basename(config))
+	// Dirname
+	t.Log(Dirname(config))
 }

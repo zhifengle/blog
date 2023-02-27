@@ -6,6 +6,11 @@ import (
 	"path/filepath"
 )
 
+func ReadFile(filename string) (string, error) {
+	s, err := os.ReadFile(filename)
+	return string(s), err
+}
+
 func ReadLines(path string) ([]string, error) {
 	file, err := os.Open(path)
 	if err != nil {
@@ -22,8 +27,14 @@ func ReadLines(path string) ([]string, error) {
 }
 
 func IsFileExist(filename string) bool {
-	_, err := os.Stat(filename)
-	return err == nil
+	info, err := os.Stat(filename)
+	if os.IsNotExist(err) {
+		return false
+	}
+	if err != nil {
+		return false
+	}
+	return !info.IsDir()
 }
 
 func GetCurrentPath() (string, error) {
@@ -42,4 +53,12 @@ func FindTextFiles(dir string) ([]string, error) {
 		return nil
 	})
 	return files, err
+}
+
+func Basename(path string) string {
+	return filepath.Base(path)
+}
+
+func Dirname(path string) string {
+	return filepath.Dir(filepath.Clean(path))
 }

@@ -1,6 +1,7 @@
 package ajax
 
 import (
+	"encoding/json"
 	"net/url"
 	"testing"
 )
@@ -37,7 +38,13 @@ func TestPostForm(t *testing.T) {
 
 func TestPostJson(t *testing.T) {
 	targetUrl := "https://httpbin.org/post"
-	values := []byte(`{"custname":"testpost"}`)
+	post_body_struct := struct {
+		Custname string `json:"custname"`
+	}{
+		Custname: "testpost",
+	}
+	// convert struct to json bytes
+	values, _ := json.Marshal(post_body_struct)
 	res, err := PostJson(targetUrl, values, nil)
 	if err != nil {
 		t.Error()
