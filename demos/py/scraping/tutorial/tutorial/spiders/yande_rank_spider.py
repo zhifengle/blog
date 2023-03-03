@@ -235,6 +235,10 @@ class YandePostJson(scrapy.Spider):
     name = "yande_post_json"
     folder = 'yande.re'
 
+    def get_default_url(self):
+        host = getattr(self, 'host', 'yande.re')
+        return f"https://{host}/post.json?page=1&limit=100"
+
     def start_requests(self):
         host = getattr(self, 'host', 'yande.re')
         url = getattr(self, 'url', f"https://{host}/post.json?page=1&limit=100")
@@ -249,13 +253,26 @@ class YandePostJson(scrapy.Spider):
         if len(posts_arr) == 0:
             return
         for post_obj in posts_arr:
-            yield self.get_post_item(post_obj)
+            item = self.get_post_item(post_obj)
+            if item is not None:
+                if item['parent_id'] is not None:
+                    url = patch_url(self.get_default_url(), tags=f"parent:{item['parent_id']}")
+                    yield scrapy.Request(url, callback=self.parse_parent_list)
+                else:
+                    yield item
         cur_page = re.match(r'.*page=(\d+).*', response.url).group(1)
         if cur_page is None:
             cur_page = 1
         yield response.follow(
             patch_url(response.url, page=int(cur_page) + 1), callback=self.parse
         )
+
+    def parse_parent_list(self, response):
+        posts_arr = response.json()
+        if len(posts_arr) == 0:
+            return
+        for post_obj in posts_arr:
+            yield self.get_post_item(post_obj)
 
     def get_post_item(self, post_obj):
         status = post_obj.get('status')
