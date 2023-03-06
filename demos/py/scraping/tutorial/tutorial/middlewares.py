@@ -4,6 +4,7 @@
 # https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 
 import os
+import socket
 from scrapy import signals
 
 # useful for handling different item types with a single interface
@@ -104,7 +105,24 @@ class TutorialDownloaderMiddleware:
         spider.logger.info('Spider opened: %s' % spider.name)
 
 class ProxyMiddleware(object):
+    proxy_url = None
+    checked = False
     def process_request(self, request, spider):
         # check os is Windows
         if os.name == 'nt':
             request.meta['proxy'] = 'http://127.0.0.1:7891'
+            return
+
+        if self.checked:
+            if self.proxy_url is not None:
+                request.meta['proxy'] = self.proxy_url
+            return
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        result = sock.connect_ex(('127.0.0.1',7891))
+        if result == 0:
+            request.meta['proxy'] = 'http://127.0.0.1:7891'
+            self.proxy_url = 'http://127.0.0.1:7891'
+        else:
+            spider.logger.warn('ProxyMiddleware: Proxy is not available')
+        sock.close()
+        self.checked = True
