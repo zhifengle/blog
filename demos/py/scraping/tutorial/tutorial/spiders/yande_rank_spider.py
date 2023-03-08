@@ -243,9 +243,10 @@ class YandePostJson(scrapy.Spider):
         host = getattr(self, 'host', 'yande.re')
         url = getattr(self, 'url', f"https://{host}/post.json?page=1&limit=100")
         tags = getattr(self, 'tags', '')
+        folder = getattr(self, 'folder', None)
         if tags:
             url = patch_url(url, tags=tags)
-            self.folder = host
+            self.folder = host if folder is None else folder
         yield scrapy.Request(url, callback=self.parse)
 
     def parse(self, response):
