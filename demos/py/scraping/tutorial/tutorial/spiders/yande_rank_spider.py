@@ -233,15 +233,16 @@ class YandePostJson(scrapy.Spider):
         'SQLITE_DB_PATH': str(Path('G:\\') / 'Downloads/pic/yande_post/posts_json.sqlite'),
     }
     name = "yande_post_json"
+    page_size = 100
     folder = 'yande.re'
 
     def get_default_url(self):
         host = getattr(self, 'host', 'yande.re')
-        return f"https://{host}/post.json?page=1&limit=100"
+        return f"https://{host}/post.json?page=1&limit={self.page_size}"
 
     def start_requests(self):
         host = getattr(self, 'host', 'yande.re')
-        url = getattr(self, 'url', f"https://{host}/post.json?page=1&limit=100")
+        url = getattr(self, 'url', f"https://{host}/post.json?page=1&limit={self.page_size}")
         tags = getattr(self, 'tags', '')
         folder = getattr(self, 'folder', None)
         if tags:
@@ -256,11 +257,13 @@ class YandePostJson(scrapy.Spider):
         for post_obj in posts_arr:
             item = self.get_post_item(post_obj)
             if item is not None:
-                if item['parent_id'] is not None:
+                if item['parent_id'] is not None and response.url.find('parent') == -1:
                     url = patch_url(self.get_default_url(), tags=f"parent:{item['parent_id']}")
                     yield scrapy.Request(url, callback=self.parse_parent_list)
                 else:
                     yield item
+        if len(posts_arr) < self.page_size:
+            return
         cur_page = re.match(r'.*page=(\d+).*', response.url).group(1)
         if cur_page is None:
             cur_page = 1
