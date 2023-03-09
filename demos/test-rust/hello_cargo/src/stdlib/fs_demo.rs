@@ -87,3 +87,19 @@ fn get_config(filename: &str) -> Result<(), Box<dyn StdError>> {
 fn write_config(filename: &str, contents: &str) {
     let _r = fs::write(&filename, contents);
 }
+
+fn find_txt_files(folder_path: &str) -> Vec<String> {
+    let mut txt_files = Vec::new();
+    let folder = fs::read_dir(folder_path).expect("Failed to read directory");
+
+    for file in folder {
+        let file_path = file.expect("Failed to get file path").path();
+        if let Some(extension) = file_path.extension() {
+            if extension == "txt" {
+                txt_files.push(file_path.to_str().unwrap().to_owned());
+            }
+        }
+    }
+
+    txt_files
+}
