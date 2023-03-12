@@ -9,3 +9,4 @@ __pycache__
 /project.egg-info
 /build
 /logs
+node-site-config.json

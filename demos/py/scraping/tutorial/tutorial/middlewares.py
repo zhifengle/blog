@@ -107,7 +107,11 @@ class TutorialDownloaderMiddleware:
 class ProxyMiddleware(object):
     proxy_url = None
     checked = False
+    proxy = os.environ.get('https_proxy')
     def process_request(self, request, spider):
+        if self.proxy:
+            # request.meta['proxy'] = proxy
+            return
         # check os is Windows
         if os.name == 'nt':
             request.meta['proxy'] = 'http://127.0.0.1:7891'

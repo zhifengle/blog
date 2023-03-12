@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 import random
 from urllib.parse import unquote, urlparse, urlencode, parse_qsl
@@ -9,6 +10,19 @@ def patch_url(url, **kwargs):
         query=urlencode(dict(parse_qsl(url_obj.query), **kwargs))
     ).geturl()
 
+def get_query_dict(query):
+    # query_dict = {}
+    # for q in query.split('&'):
+    #     k, v = q.split('=')
+    #     query_dict[k] = v
+
+    return dict(parse_qsl(query))
+
+# convert cookies string to cookies dict
+def get_cookies_dict(cookies):
+    if not cookies:
+        return {}
+    return {c.split('=')[0]: c.split('=')[1] for c in cookies.split('; ')}
 
 def sanitize_name(name):
     return (
@@ -56,6 +70,24 @@ def random_useragent():
         'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36 Edg/110.0.1587.49',
     ]
     return random.choice(ua_list)
+
+def get_node_site_config():
+    file = 'node-site-config.json'
+    path_config_file = Path(file)
+    if path_config_file.is_file():
+        with open(file) as f:
+            return json.load(f)
+    path_config_file = Path.home() / 'node-site-config.json'
+    if path_config_file.is_file():
+        with open(path_config_file) as f:
+            return json.load(f)
+    return {}
+
+
+def get_config_by_url(url):
+    config = get_node_site_config()
+    url_obj = urlparse(url)
+    return config.get(url_obj.netloc, {})
 
 
 if __name__ == "__main__":
