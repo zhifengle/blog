@@ -78,7 +78,8 @@ common_settings = {
         'tutorial.pipelines.YandeImagesPipeline': 1,
         'tutorial.pipelines.YandePostSqlitePipeline': 3,
     },
-    'DOWNLOAD_DELAY': 0.5,
+    'CONCURRENT_REQUESTS_PER_DOMAIN': 1,
+    'DOWNLOAD_DELAY': 2.5,
     'IMAGES_STORE': str(Path.home() / 'Downloads/pic/yande_post'),
     'IMAGES_EXPIRES': 0,
     'SQLITE_DB_PATH': str(Path.home() / 'Downloads/pic/yande_post/posts.sqlite'),
@@ -228,20 +229,20 @@ class YandePostJson(scrapy.Spider):
         ),
     }
     name = "yande_post_json"
+    downloaded_ids = []
     page_size = 100
     folder = 'yande.re'
     post_url = 'https://yande.re/post.json'
 
     def start_requests(self):
+        self.set_downloaded_ids()
         ids = getattr(self, 'ids', None)
         if ids:
             for id in ids.split(','):
                 url = patch_url(self.post_url, tags=f"id:{id}")
                 yield scrapy.Request(url, callback=self.parse_item_by_id)
             return
-        url = getattr(
-            self, 'url', f"{self.post_url}?page=1&limit={self.page_size}"
-        )
+        url = getattr(self, 'url', f"{self.post_url}?page=1&limit={self.page_size}")
         tags = getattr(self, 'tags', '')
         if tags:
             url = patch_url(url, tags=tags)
@@ -254,6 +255,8 @@ class YandePostJson(scrapy.Spider):
         for post_obj in posts_arr:
             item = self.get_post_item(post_obj)
             if item is not None:
+                if item['post_id'] in self.downloaded_ids:
+                    return
                 if item['parent_id'] is not None and response.url.find('parent') == -1:
                     url = patch_url(self.post_url, tags=f"parent:{item['parent_id']}")
                     yield scrapy.Request(url, callback=self.parse_parent_list)
@@ -336,13 +339,27 @@ class YandePostJson(scrapy.Spider):
             post_item['creator'] = post_obj['author']
         return post_item
 
+    def set_downloaded_ids(self):
+        save_path = self.custom_settings['IMAGES_STORE']
+        download_ids = []
+        for path in Path(save_path).glob('**/*'):
+            if path.is_dir():
+                continue
+            if path.parent.name == self.folder:
+                continue
+            search_result = re.search(r'(\d+)', path.name)
+            if search_result:
+                post_id = search_result.group(1)
+                download_ids.append(int(post_id))
+        self.downloaded_ids = download_ids
+
 
 class KonachanPost(YandePostJson):
     custom_settings = {
         **common_settings,
-        'IMAGES_STORE': str(Path('G:\\') / 'Downloads/pic/yande_post'),
+        'IMAGES_STORE': str(Path('G:\\') / 'Downloads/pic/konachan_post'),
         'SQLITE_DB_PATH': str(
-            Path('G:\\') / 'Downloads/pic/yande_post/konachan_posts_json.sqlite'
+            Path('G:\\') / 'Downloads/pic/konachan_post/konachan_posts_json.sqlite'
         ),
     }
     name = "konachan_post_json"
