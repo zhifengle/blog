@@ -7,6 +7,7 @@ from tutorial.items import ImageItem
 from tutorial.utils import get_start_and_end, patch_url, sanitize_name
 
 OUTPUT_PATH = str(Path.home() / "Downloads/pic/yande")
+parent_save_path = Path('G:\\')
 
 
 class YandePostItem(scrapy.Item):
@@ -89,8 +90,8 @@ common_settings = {
 class YandePost(scrapy.Spider):
     custom_settings = {
         **common_settings,
-        'IMAGES_STORE': str(Path('G:\\') / 'Downloads/pic/yande_post'),
-        'SQLITE_DB_PATH': str(Path('G:\\') / 'Downloads/pic/yande_post/posts.sqlite'),
+        'IMAGES_STORE': str(parent_save_path / 'Downloads/pic/yande_post'),
+        'SQLITE_DB_PATH': str(parent_save_path / 'Downloads/pic/yande_post/posts.sqlite'),
     }
     name = "yande_post"
     folder = 'yande.re'
@@ -223,9 +224,9 @@ class YandePost(scrapy.Spider):
 class YandePostJson(scrapy.Spider):
     custom_settings = {
         **common_settings,
-        'IMAGES_STORE': str(Path('G:\\') / 'Downloads/pic/yande_post'),
+        'IMAGES_STORE': str(parent_save_path / 'Downloads/pic/yande_post'),
         'SQLITE_DB_PATH': str(
-            Path('G:\\') / 'Downloads/pic/yande_post/posts_json.sqlite'
+            parent_save_path / 'Downloads/pic/yande_post/posts_json.sqlite'
         ),
     }
     name = "yande_post_json"
@@ -309,11 +310,7 @@ class YandePostJson(scrapy.Spider):
         if image_url is None:
             return
         image_name = unquote(PurePosixPath(urlparse(image_url).path).name)
-        pic_path = getattr(self, 'pic_path', None)
-        if pic_path:
-            image_name = f"{Path(pic_path).name}/{sanitize_name(image_name)}"
-        else:
-            image_name = f"{sanitize_name(self.folder)}/{sanitize_name(image_name)}"
+        image_name = f"{self.folder}/{sanitize_name(image_name)}"
         post_id = post_obj['id'] if 'id' in post_obj else post_obj['post_id']
         post_item = YandePostItem(
             post_id=post_id,
@@ -357,13 +354,42 @@ class YandePostJson(scrapy.Spider):
 class KonachanPost(YandePostJson):
     custom_settings = {
         **common_settings,
-        'IMAGES_STORE': str(Path('G:\\') / 'Downloads/pic/konachan_post'),
+        'IMAGES_STORE': str(parent_save_path / 'Downloads/pic/konachan_post'),
         'SQLITE_DB_PATH': str(
-            Path('G:\\') / 'Downloads/pic/konachan_post/konachan_posts_json.sqlite'
+            parent_save_path / 'Downloads/pic/konachan_post/konachan_posts_json.sqlite'
         ),
     }
     name = "konachan_post_json"
     page_size = 100
     host = 'konachan.com'
     folder = 'konachan.com'
+    post_url = 'https://konachan.com/post.json'
+
+
+class YandePostStar(YandePostJson):
+    name = "yande_star"
+    folder = 'stars'
+
+    def start_requests(self):
+        self.set_downloaded_ids()
+        ids = getattr(self, 'ids', None)
+        if not ids:
+            self.logger.error('ids is required')
+            return
+        for id in ids.split(','):
+            url = patch_url(self.post_url, tags=f"id:{id}")
+            yield scrapy.Request(url, callback=self.parse_item_by_id)
+
+class KonachanPostStar(YandePostStar):
+    custom_settings = {
+        **common_settings,
+        'IMAGES_STORE': str(parent_save_path / 'Downloads/pic/konachan_post'),
+        'SQLITE_DB_PATH': str(
+            parent_save_path / 'Downloads/pic/konachan_post/konachan_posts_json.sqlite'
+        ),
+    }
+    name = "konachan_star"
+    page_size = 100
+    host = 'konachan.com'
+    folder = 'stars'
     post_url = 'https://konachan.com/post.json'
