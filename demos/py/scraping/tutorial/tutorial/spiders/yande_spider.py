@@ -230,7 +230,7 @@ class YandePostJson(scrapy.Spider):
         ),
     }
     name = "yande_post_json"
-    downloaded_ids = []
+    downloaded_ids = set()
     page_size = 100
     folder = 'yande.re'
     post_url = 'https://yande.re/post.json'
@@ -337,9 +337,14 @@ class YandePostJson(scrapy.Spider):
         return post_item
 
     def set_downloaded_ids(self):
+        downloaded_ids = set()
         save_path = self.custom_settings['IMAGES_STORE']
-        download_ids = []
-        for path in Path(save_path).glob('**/*'):
+        cur_path = Path(save_path)
+        filelist_txt = cur_path / f'{cur_path.name}.txt'
+        if filelist_txt.exists():
+            with open(filelist_txt, 'r') as f:
+                downloaded_ids.update([int(line.strip()) for line in f.readlines()])
+        for path in cur_path.glob('**/*'):
             if path.is_dir():
                 continue
             if path.parent.name == self.folder:
@@ -347,8 +352,8 @@ class YandePostJson(scrapy.Spider):
             search_result = re.search(r'(\d+)', path.name)
             if search_result:
                 post_id = search_result.group(1)
-                download_ids.append(int(post_id))
-        self.downloaded_ids = download_ids
+                downloaded_ids.add(int(post_id))
+        self.downloaded_ids = downloaded_ids
 
 
 class KonachanPost(YandePostJson):
