@@ -256,11 +256,11 @@ class YandePostJson(scrapy.Spider):
         for post_obj in posts_arr:
             item = self.get_post_item(post_obj)
             if item is not None:
-                if item['post_id'] in self.downloaded_ids:
-                    return
                 if item['parent_id'] is not None and response.url.find('parent') == -1:
                     url = patch_url(self.post_url, tags=f"parent:{item['parent_id']}")
                     yield scrapy.Request(url, callback=self.parse_parent_list)
+                elif item['post_id'] in self.downloaded_ids:
+                    continue
                 else:
                     yield item
         if 'limit' not in response.url:
