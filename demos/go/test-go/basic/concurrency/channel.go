@@ -2,6 +2,7 @@ package concurrency
 
 import (
 	"fmt"
+	"time"
 )
 
 func printNums() {
@@ -30,4 +31,33 @@ func processTasks() {
 		res := <-ch
 		fmt.Println("Result: ", res)
 	}
+}
+
+// 推荐使用 done chan
+func infiniteLoop() {
+	for {
+		select {
+		default:
+			fmt.Println("doing work")
+		}
+	}
+}
+
+func doWork(done <-chan bool) {
+	for {
+		select {
+		case <-done:
+			return
+		default:
+			fmt.Println("doing")
+		}
+	}
+}
+func donePattern() {
+	done := make(chan bool)
+	go doWork(done)
+
+	time.Sleep(time.Second * 1)
+	// done <- true
+	close(done)
 }

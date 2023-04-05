@@ -10,3 +10,7 @@ func TestPrintNums(t *testing.T) {
 func TestProcessTasks(t *testing.T) {
 	go processTasks()
 }
+
+func TestDoPattern(t *testing.T) {
+	donePattern()
+}
