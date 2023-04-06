@@ -2,6 +2,10 @@ import json
 from pathlib import Path
 import requests
 
+default_headers = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36 Edg/110.0.1587.56'
+}
+
 
 def get_node_site_config():
     file = 'node-site-config.json'
@@ -26,11 +30,8 @@ def gen_session_by_url(url):
     config = get_config_by_url(url)
     headers = config.get('headers', {})
     session = requests.Session()
-    session.headers[
-        'user-agent'
-    ] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36 Edg/110.0.1587.56'
-    for key, value in headers.items():
-        session.headers[key] = value
+    session.headers.update(default_headers)
+    session.headers.update(headers)
     if config.get('httpsAgent', False):
         proxy_url = 'http://127.0.0.1:10809'
         session.proxies = {
