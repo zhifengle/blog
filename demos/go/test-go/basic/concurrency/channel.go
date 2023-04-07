@@ -2,6 +2,7 @@ package concurrency
 
 import (
 	"fmt"
+	"sync"
 	"time"
 )
 
@@ -60,4 +61,24 @@ func donePattern() {
 	time.Sleep(time.Second * 1)
 	// done <- true
 	close(done)
+}
+
+func fakeWorkFn(url string) {
+	time.Sleep(time.Second * 1)
+	fmt.Println("req: {}", url)
+}
+
+func limitRun(num int, arr []string, iterFn func(item string)) {
+	var wg sync.WaitGroup
+	control := make(chan bool, num)
+	for _, item := range arr {
+		wg.Add(1)
+		go func(item string) {
+			defer wg.Done()
+			control <- false
+			iterFn(item)
+			<-control
+		}(item)
+	}
+	wg.Wait()
 }
