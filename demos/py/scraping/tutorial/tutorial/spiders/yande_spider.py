@@ -91,7 +91,9 @@ class YandePost(scrapy.Spider):
     custom_settings = {
         **common_settings,
         'IMAGES_STORE': str(parent_save_path / 'Downloads/pic/yande_post'),
-        'SQLITE_DB_PATH': str(parent_save_path / 'Downloads/pic/yande_post/posts.sqlite'),
+        'SQLITE_DB_PATH': str(
+            parent_save_path / 'Downloads/pic/yande_post/posts.sqlite'
+        ),
     }
     name = "yande_post"
     folder = 'yande.re'
@@ -234,9 +236,13 @@ class YandePostJson(scrapy.Spider):
     page_size = 100
     folder = 'yande.re'
     post_url = 'https://yande.re/post.json'
+    skip_txt_list = False
 
     def start_requests(self):
-        self.set_downloaded_ids()
+        if self.skip_txt_list:
+            self.set_downloaded_ids(self.folder)
+        else:
+            self.set_downloaded_ids()
         ids = getattr(self, 'ids', None)
         if ids:
             for id in ids.split(','):
@@ -279,7 +285,9 @@ class YandePostJson(scrapy.Spider):
         if len(posts_arr) == 0:
             return
         for post_obj in posts_arr:
-            yield self.get_post_item(post_obj)
+            # skip downloaded
+            if not post_obj['id'] in self.downloaded_ids:
+                yield self.get_post_item(post_obj)
 
     def parse_item_by_id(self, response):
         posts_arr = response.json()
@@ -336,18 +344,19 @@ class YandePostJson(scrapy.Spider):
             post_item['creator'] = post_obj['author']
         return post_item
 
-    def set_downloaded_ids(self):
+    def set_downloaded_ids(self, folder_name = ''):
         downloaded_ids = set()
         save_path = self.custom_settings['IMAGES_STORE']
         cur_path = Path(save_path)
-        filelist_txt = cur_path / f'{cur_path.name}.txt'
-        if filelist_txt.exists():
-            with open(filelist_txt, 'r') as f:
-                downloaded_ids.update([int(line.strip()) for line in f.readlines()])
+        if folder_name:
+            cur_path = Path(save_path) / folder_name
+        else:
+            filelist_txt = cur_path / f'{cur_path.name}.txt'
+            if filelist_txt.exists():
+                with open(filelist_txt, 'r') as f:
+                    downloaded_ids.update([int(line.strip()) for line in f.readlines()])
         for path in cur_path.glob('**/*'):
             if path.is_dir():
-                continue
-            if path.parent.name == self.folder:
                 continue
             search_result = re.search(r'(\d+)', path.name)
             if search_result:
@@ -385,6 +394,7 @@ class YandePostStar(YandePostJson):
             url = patch_url(self.post_url, tags=f"id:{id}")
             yield scrapy.Request(url, callback=self.parse_item_by_id)
 
+
 class KonachanPostStar(YandePostStar):
     custom_settings = {
         **common_settings,
@@ -398,3 +408,19 @@ class KonachanPostStar(YandePostStar):
     host = 'konachan.com'
     folder = 'stars'
     post_url = 'https://konachan.com/post.json'
+
+
+class YandeTag(YandePostJson):
+    name = "yande_tag"
+
+    def start_requests(self):
+        tags = getattr(self, 'tags', '')
+        if not tags:
+            self.logger.error('tags is required')
+            return
+        self.folder = sanitize_name(tags)
+        self.set_downloaded_ids(self.folder)
+        url = getattr(self, 'url', f"{self.post_url}?page=1&limit={self.page_size}")
+        if tags:
+            url = patch_url(url, tags=tags)
+        yield scrapy.Request(url, callback=self.parse)
