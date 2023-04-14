@@ -10,6 +10,8 @@ import (
 func main() {
 	http.HandleFunc("/", sayHelloFunc)
 	http.HandleFunc("/snippet", showSnippet)
+	http.HandleFunc("/person/1", getPerson)
+	http.HandleFunc("/person/add", addPerson)
 	err := http.ListenAndServe(":4000", nil)
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
