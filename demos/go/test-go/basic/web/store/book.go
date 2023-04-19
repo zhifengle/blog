@@ -1,7 +1,6 @@
 package store
 
 import (
-	"context"
 	"database/sql"
 	"fmt"
 )
@@ -39,7 +38,7 @@ func (b *BookCreate) Validate() error {
 }
 
 func (s *Store) CreateBook(book *BookCreate) (*Book, error) {
-	tx, err := s.db.BeginTx(context.Background(), nil)
+	tx, err := s.db.Begin()
 	if err != nil {
 		return nil, err
 	}
