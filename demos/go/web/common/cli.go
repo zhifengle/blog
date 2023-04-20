@@ -3,7 +3,6 @@ package common
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -35,8 +34,8 @@ func StartServer(s UserServer) {
 
 	if err := s.Start(ctx); err != nil {
 		if err != http.ErrServerClosed {
+			fmt.Printf("failed to start server, error: %+v\n", err)
 			cancel()
-			log.Fatalf("failed to start server, error: %+v\n", err)
 		}
 	}
 
