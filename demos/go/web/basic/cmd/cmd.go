@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"web/auth/server"
-	"web/auth/server/config"
+	"web/basic/server"
+	"web/basic/server/profile"
 	"web/common"
 )
 
@@ -18,10 +18,11 @@ func Execute() {
 		flag.PrintDefaults()
 	}
 	flag.Parse()
-	conf := &config.Config{
-		Port:    *port,
-		Version: "v0.1.0",
+	conf, err := profile.GetProfile("basic")
+	if err != nil {
+		log.Fatalf("failed to get profile, error: %+v\n", err)
 	}
+	conf.Port = *port
 	s, err := server.NewServer(context.Background(), conf)
 	if err != nil {
 		log.Fatalf("failed to create server, error: %+v\n", err)

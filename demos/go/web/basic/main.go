@@ -1,8 +1,10 @@
 package main
 
 import (
-	"web/auth/cmd"
+	"web/basic/cmd"
 )
+
+// https://github.com/usememos/memos
 
 func main() {
 	cmd.Execute()

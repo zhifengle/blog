@@ -1,0 +1,6 @@
+GET http://127.0.0.1:7080/ping
+
+###
+
+GET http://127.0.0.1:7080/pong
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsImtpZCI6InYxIiwidHlwIjoiSldUIn0.eyJ1c2VybmFtZSI6ImZvbyIsInVzZXJfaWQiOjAsImlzcyI6Im15YXBwIiwiYXVkIjpbInVzZXIuYWNjZXNzLXRva2VuIl0sImV4cCI6MTY4MjI5NzkzNCwiaWF0IjoxNjgyMzAxNTM0fQ.RBuEn8icF_JR0BHnTTubM-T80tOadAxudcz0GAvsPX8

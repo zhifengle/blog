@@ -1,7 +1,7 @@
 package server
 
 import (
-	"web/auth/api"
+	"web/basic/api"
 
 	"github.com/gin-gonic/gin"
 )
