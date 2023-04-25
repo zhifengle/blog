@@ -1,6 +1,10 @@
 package common
 
-import "strings"
+import (
+	"strings"
+
+	"github.com/google/uuid"
+)
 
 // HasPrefixes returns true if the string s has any of the given prefixes.
 func HasPrefixes(src string, prefixes ...string) bool {
@@ -19,4 +23,8 @@ func HasContain(list []string, target string) bool {
 		}
 	}
 	return false
+}
+
+func GenUUID() string {
+	return uuid.New().String()
 }

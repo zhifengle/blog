@@ -2,14 +2,21 @@ package server
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"strings"
+	"web/basic/api"
 	"web/common"
 	"web/common/r"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 )
+
+type TokenInfo struct {
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
+}
 
 func extractTokenFromHeader(header http.Header) string {
 	authHeader := header.Get("Authorization")
@@ -36,6 +43,29 @@ func findAccessToken(c *gin.Context) string {
 	}
 
 	return accessToken
+}
+
+func GenerateTokens(c *gin.Context, user *api.User, secret string) (*TokenInfo, error) {
+	accessToken, err := common.GenerateAccessToken(user.ID, user.Username, secret)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate access token %w", err)
+	}
+
+	refreshToken, err := common.GenerateRefreshToken(user.ID, user.Username, secret)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate refresh token %w", err)
+	}
+
+	return &TokenInfo{
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+	}, nil
+}
+
+func SetTokenCookies(c *gin.Context, tokenInfo *TokenInfo) {
+	cookieMaxAge := int(common.CookieExpDuration.Seconds())
+	c.SetCookie(common.AccessTokenCookieName, tokenInfo.AccessToken, cookieMaxAge, "", c.Request.Host, true, true)
+	c.SetCookie(common.RefreshTokenCookieName, tokenInfo.RefreshToken, cookieMaxAge, "", c.Request.Host, true, true)
 }
 
 // JWTMiddleware validates the access token.

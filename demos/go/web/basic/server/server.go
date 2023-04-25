@@ -36,8 +36,9 @@ func NewServer(ctx context.Context, cfg *profile.Profile) (*Server, error) {
 		db:      database.DBInstance,
 		Store:   store.New(database.DBInstance, cfg),
 	}
+	secret := "secret"
 
-	r.Use(JWTMiddleware(s, "secret"))
+	r.Use(JWTMiddleware(s, secret))
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(200, gin.H{"code": 0, "msg": "ping"})
 	})
@@ -46,7 +47,7 @@ func NewServer(ctx context.Context, cfg *profile.Profile) (*Server, error) {
 	})
 	apiGroup := r.Group("/api")
 
-	s.registerAuthRoutes(apiGroup, "somesalt")
+	s.registerAuthRoutes(apiGroup, secret)
 
 	return s, nil
 }

@@ -4,3 +4,33 @@ GET http://127.0.0.1:7080/ping
 
 GET http://127.0.0.1:7080/pong
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsImtpZCI6InYxIiwidHlwIjoiSldUIn0.eyJ1c2VybmFtZSI6ImZvbyIsInVzZXJfaWQiOjAsImlzcyI6Im15YXBwIiwiYXVkIjpbInVzZXIuYWNjZXNzLXRva2VuIl0sImV4cCI6MTY4MjI5NzkzNCwiaWF0IjoxNjgyMzAxNTM0fQ.RBuEn8icF_JR0BHnTTubM-T80tOadAxudcz0GAvsPX8
+
+###
+
+POST http://127.0.0.1:7080/api/auth/signin
+Content-Type: application/json
+
+{
+    "username": "demohero",
+    "password": "secret"
+}
+
+###
+
+POST http://127.0.0.1:7080/api/auth/register
+Content-Type: application/json
+
+{
+    "username": "demohero",
+    "password": "secret"
+}
+
+### 
+
+POST http://127.0.0.1:7080/api/auth/signin
+Content-Type: application/json
+
+{
+    "username": "demo",
+    "password": "secret"
+}
