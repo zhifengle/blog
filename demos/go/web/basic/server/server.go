@@ -70,9 +70,9 @@ func (s *Server) Shutdown(ctx context.Context) error {
 	}
 
 	// Close database connection
-	// if err := s.db.Close(); err != nil {
-	// 	fmt.Printf("failed to close database, error: %v\n", err)
-	// }
+	if err := s.db.Close(); err != nil {
+		fmt.Printf("failed to close database, error: %v\n", err)
+	}
 
 	fmt.Printf("server stopped properly\n")
 	return nil
