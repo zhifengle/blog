@@ -1,0 +1,5 @@
+mode: demo
+# dsn: demo.db
+port: 7080
+version: v0.1.0
+# secret: secret

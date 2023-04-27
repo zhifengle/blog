@@ -10,6 +10,7 @@ type Profile struct {
 	DSN     string `json:"dsn"`
 	Version string `json:"version"`
 	Data    string `json:"-"`
+	Secret  string `json:"secret"`
 }
 
 func GetProfile(name string) (*Profile, error) {

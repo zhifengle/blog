@@ -33,7 +33,10 @@ func NewServer(ctx context.Context, cfg *profile.Profile) (*Server, error) {
 		Profile: cfg,
 		Store:   store.New(database.DBInstance, cfg),
 	}
-	secret := "secret"
+	secret := cfg.Secret
+	if secret == "" {
+		secret = "secret"
+	}
 
 	r.Use(JWTMiddleware(s, secret))
 	r.GET("/ping", func(c *gin.Context) {
