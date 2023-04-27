@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"net/http"
 	"time"
@@ -18,7 +17,6 @@ var srv *http.Server
 
 type Server struct {
 	g       *gin.Engine
-	db      *sql.DB
 	Store   *store.Store
 	Profile *profile.Profile
 }
@@ -33,7 +31,6 @@ func NewServer(ctx context.Context, cfg *profile.Profile) (*Server, error) {
 	s := &Server{
 		g:       r,
 		Profile: cfg,
-		db:      database.DBInstance,
 		Store:   store.New(database.DBInstance, cfg),
 	}
 	secret := "secret"
@@ -70,7 +67,7 @@ func (s *Server) Shutdown(ctx context.Context) error {
 	}
 
 	// Close database connection
-	if err := s.db.Close(); err != nil {
+	if err := s.Store.Close(); err != nil {
 		fmt.Printf("failed to close database, error: %v\n", err)
 	}
 

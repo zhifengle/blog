@@ -28,3 +28,7 @@ func vacuum(ctx context.Context, tx *sql.Tx) error {
 
 	return nil
 }
+
+func (s *Store) Close() error {
+	return s.db.Close()
+}
