@@ -1,19 +1,30 @@
 package store
 
-import "gorm.io/gorm"
+import (
+	"gorm.io/gorm"
+)
 
-var db *gorm.DB
+var dbIns *gorm.DB
 
 type Store struct {
-	DB *gorm.DB
 }
 
-func New(db *gorm.DB) *Store {
-	return &Store{
-		DB: db,
-	}
+func Init(db *gorm.DB) *Store {
+	dbIns = db
+	return &Store{}
 }
 
 func Db() *gorm.DB {
-	return db
+	return dbIns
+}
+
+func (s *Store) Close() error {
+	if dbIns == nil {
+		return nil
+	}
+	sqlDB, err := dbIns.DB()
+	if err == nil {
+		return err
+	}
+	return sqlDB.Close()
 }

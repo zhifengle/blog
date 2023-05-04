@@ -1,4 +1,4 @@
-package store
+package sqls
 
 type Paging struct {
 	Page  int   `json:"page"`  // 页码
