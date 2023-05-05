@@ -4,6 +4,5 @@ server:
   version: v0.1.0
 
 db:
-  DSN: root:rs-secret@tcp(192.168.39.101:3006)/bbsgo_db?charset=utf8mb4&parseTime=True&loc=Local
   MaxIdleConns: 50
   MaxOpenConns: 200
