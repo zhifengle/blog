@@ -17,7 +17,7 @@ type User struct {
 	Nickname         string           `gorm:"size:16;" json:"nickname" form:"nickname"`                                // 昵称
 	Avatar           string           `gorm:"type:text" json:"avatar" form:"avatar"`                                   // 头像
 	Gender           constants.Gender `gorm:"size:16;default:''" json:"gender" form:"gender"`                          // 性别
-	Birthday         time.Time        `json:"birthday" form:"birthday"`                                                // 生日
+	Birthday         *time.Time       `json:"birthday" form:"birthday"`                                                // 生日
 	BackgroundImage  string           `gorm:"type:text" json:"backgroundImage" form:"backgroundImage"`                 // 个人中心背景图片
 	Password         string           `gorm:"size:512" json:"password" form:"password"`                                // 密码
 	HomePage         string           `gorm:"size:1024" json:"homePage" form:"homePage"`                               // 个人主页
