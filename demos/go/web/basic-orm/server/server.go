@@ -39,6 +39,9 @@ func NewServer(ctx context.Context, cfg *profile.Profile, store *store.Store) (*
 		c.JSON(200, gin.H{"code": 0, "msg": "pong"})
 	})
 
+	apiGroup := r.Group("/api")
+
+	s.registerAuthRoutes(apiGroup, secret)
 	return s, nil
 }
 

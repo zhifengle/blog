@@ -1,0 +1,37 @@
+GET http://127.0.0.1:7080/ping
+
+###
+
+GET http://127.0.0.1:7080/pong
+
+###
+
+POST http://127.0.0.1:7080/api/auth/signin
+Content-Type: application/json
+
+{
+    "username": "demohero",
+    "password": "secret"
+}
+
+###
+
+POST http://127.0.0.1:7080/api/auth/register
+Content-Type: application/json
+
+{
+    "username": "demohero",
+    "nickname": "demohero",
+    "email": "xx@gmail.com",
+    "password": "secret"
+}
+
+### 
+
+POST http://127.0.0.1:7080/api/auth/signin
+Content-Type: application/json
+
+{
+    "username": "demo",
+    "password": "secret"
+}
