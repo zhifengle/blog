@@ -37,11 +37,24 @@ func register(ctx *gin.Context) {
 	ctx.JSON(200, web.JsonSuccess())
 }
 
-func signin(c *gin.Context) {
+func signinHandler(c *gin.Context) {
+	sigin := &api.SignIn{}
+	if err := c.ShouldBindJSON(sigin); err != nil {
+		c.JSON(200, web.JsonErrorCode(web.ERROR_INVALID_PARAM))
+		return
+	}
+	user := services.UserService.GetByUsername(sigin.Username)
+	if user == nil {
+		c.JSON(200, web.JsonErrorCode(web.ERROR_USER_NOT_EXIST))
+		return
+	}
+	if user.Password != sigin.Password {
+		c.JSON(200, web.JsonErrorCode(web.ERROR_USER_LOGIN_WRONG))
+	}
 }
 
 func (s *Server) registerAuthRoutes(g *gin.RouterGroup, secret string) {
-	g.POST("/auth/signin", signin)
+	g.POST("/auth/signin", signinHandler)
 
 	g.POST("/auth/register", register)
 }

@@ -30,3 +30,15 @@ func (s *userService) Find(cnd *sqls.Cnd) []model.User {
 	cnd.Find(store.Db(), &list)
 	return list
 }
+
+func (s *userService) GetByUsername(username string) *model.User {
+	return s.Take("username = ?", username)
+}
+
+func (s *userService) Take(where ...interface{}) *model.User {
+	ret := &model.User{}
+	if err := store.Db().Take(ret, where...).Error; err != nil {
+		return nil
+	}
+	return ret
+}
