@@ -35,3 +35,7 @@ Content-Type: application/json
     "username": "demo",
     "password": "secret"
 }
+
+### 
+
+GET  http://127.0.0.1:7080/api/user/list?pageSize=10&currentPage=1

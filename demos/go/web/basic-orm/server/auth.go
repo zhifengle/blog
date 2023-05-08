@@ -7,6 +7,7 @@ import (
 	"web/common/dates"
 	"web/common/web"
 
+	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 )
 
@@ -57,4 +58,24 @@ func (s *Server) registerAuthRoutes(g *gin.RouterGroup, secret string) {
 	g.POST("/auth/signin", signinHandler)
 
 	g.POST("/auth/register", register)
+}
+
+func ErrorHandler() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Next()
+		for _, e := range c.Errors {
+			c.JSON(200, web.JsonError(e.Err))
+		}
+	}
+}
+
+func Cookie() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		session := sessions.Default(c)
+		if session.Get("user") == nil {
+			c.Abort()
+			c.Error(web.NewError(401, "need login"))
+			return
+		}
+	}
 }

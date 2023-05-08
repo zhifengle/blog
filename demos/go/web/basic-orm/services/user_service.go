@@ -2,8 +2,9 @@ package services
 
 import (
 	"web/basic-orm/model"
+	"web/basic-orm/model/api"
 	"web/basic-orm/store"
-	"web/common/sqls"
+	"web/common/web"
 )
 
 type userService struct{}
@@ -11,10 +12,12 @@ type userService struct{}
 var UserService = &userService{}
 
 func (s *userService) Create(t *model.User) error {
-	return store.Db().Create(t).Error
-	// if err == nil {
-	// 	cache.UserCache.Invalidate(t.Id)
-	// }
+	user := s.GetByUsername(t.Username)
+	if user != nil {
+		return web.NewCodeError(web.ERROR_USER_NAME_USED)
+	}
+	err := store.Db().Create(t).Error
+	return err
 }
 
 func (s *userService) Get(id int64) *model.User {
@@ -23,12 +26,6 @@ func (s *userService) Get(id int64) *model.User {
 		return nil
 	}
 	return user
-}
-
-func (s *userService) Find(cnd *sqls.Cnd) []model.User {
-	list := make([]model.User, 0)
-	cnd.Find(store.Db(), &list)
-	return list
 }
 
 func (s *userService) GetByUsername(username string) *model.User {
@@ -41,4 +38,13 @@ func (s *userService) Take(where ...interface{}) *model.User {
 		return nil
 	}
 	return ret
+}
+
+func (s *userService) GetList(paging *api.Paging) (*api.PageResult[model.User], error) {
+	p := &api.PageResult[model.User]{
+		PageSize:    paging.PageSize,
+		CurrentPage: paging.CurrentPage,
+	}
+	err := selectPages(store.Db(), p)
+	return p, err
 }

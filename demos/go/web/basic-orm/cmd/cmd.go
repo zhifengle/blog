@@ -8,8 +8,8 @@ import (
 	"web/basic-orm/model"
 	"web/basic-orm/server"
 	"web/basic-orm/store"
+	"web/basic-orm/store/db"
 	"web/common"
-	"web/common/sqls"
 
 	"gorm.io/gorm"
 )
@@ -20,11 +20,11 @@ func Execute() {
 	flag.Parse()
 	cfg := config.Init(configFile)
 
-	db, err := sqls.Open(cfg.DB, &gorm.Config{}, model.Models...)
+	database, err := db.Open(cfg.DB, &gorm.Config{}, model.Models...)
 	if err != nil {
 		log.Fatalf("failed to open db, error: %+v\n", err)
 	}
-	s, err := server.NewServer(context.Background(), &cfg.Server, store.Init(db))
+	s, err := server.NewServer(context.Background(), &cfg.Server, store.Init(database))
 	if err != nil {
 		log.Fatalf("failed to create server, error: %+v\n", err)
 	}

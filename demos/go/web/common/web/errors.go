@@ -4,12 +4,17 @@ import (
 	"strconv"
 )
 
-func NewError(code int, text string) *CodeError {
-	return &CodeError{code, text, nil}
+func NewError(code int, msg string) *CodeError {
+	return &CodeError{code, msg, nil}
 }
 
-func NewErrorData(code int, text string, data interface{}) *CodeError {
-	return &CodeError{code, text, data}
+func NewCodeError(code int) *CodeError {
+	msg := GetMsg(code)
+	return &CodeError{code, msg, nil}
+}
+
+func NewErrorData(code int, msg string, data interface{}) *CodeError {
+	return &CodeError{code, msg, data}
 }
 
 type CodeError struct {

@@ -3,7 +3,7 @@ package config
 import (
 	"log"
 	"web/basic-orm/server/profile"
-	"web/common/sqls"
+	"web/basic-orm/store/db"
 
 	"github.com/spf13/viper"
 )
@@ -18,7 +18,7 @@ const (
 type Config struct {
 	Server profile.Profile `json:"server"`
 
-	DB sqls.DbConfig `json:"db"`
+	DB db.DbConfig `json:"db"`
 
 	Jwt struct {
 		SignKey       string `json:"signKey"`

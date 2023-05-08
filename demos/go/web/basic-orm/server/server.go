@@ -38,10 +38,12 @@ func NewServer(ctx context.Context, cfg *profile.Profile, store *store.Store) (*
 	r.GET("/pong", func(c *gin.Context) {
 		c.JSON(200, gin.H{"code": 0, "msg": "pong"})
 	})
+	r.Use(ErrorHandler())
 
 	apiGroup := r.Group("/api")
 
 	s.registerAuthRoutes(apiGroup, secret)
+	s.registerUserRoutes(apiGroup)
 	return s, nil
 }
 
