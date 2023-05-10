@@ -68,12 +68,12 @@ func fakeWorkFn(url string) {
 	fmt.Println("req: {}", url)
 }
 
-func limitRun(num int, arr []string, iterFn func(item string)) {
+func limitRun[T any](num int, arr []T, iterFn func(item T)) {
 	var wg sync.WaitGroup
 	control := make(chan bool, num)
 	for _, item := range arr {
 		wg.Add(1)
-		go func(item string) {
+		go func(item T) {
 			defer wg.Done()
 			control <- false
 			iterFn(item)
