@@ -18,6 +18,20 @@ func printNums() {
 		<-done
 	}
 }
+func printNums2() {
+	c := make(chan int)
+
+	go func() {
+		for i := 0; i < 10; i++ {
+			c <- i
+		}
+		close(c)
+	}()
+
+	for i := range c {
+		fmt.Println(i)
+	}
+}
 
 // 1000 tasks, 10 goroutines
 func processTasks() {

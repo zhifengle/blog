@@ -8,6 +8,7 @@ import (
 
 func TestPrintNums(t *testing.T) {
 	go printNums()
+	go printNums2()
 }
 
 // test processTasks

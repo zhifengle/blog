@@ -103,3 +103,21 @@ fn find_txt_files(folder_path: &str) -> Vec<String> {
 
     txt_files
 }
+
+// -------------------------------------------------
+
+// notes: 编译时不知道大小，需要使用 Box
+fn open_file(filename: &str) -> MyResult<Box<dyn BufRead>> {
+    match filename {
+        "-" => Ok(Box::new(BufReader::new(io::stdin()))),
+        _ => Ok(Box::new(BufReader::new(File::open(filename)?))),
+    }
+}
+
+// notes: 传入字符串或者PathBuf
+fn some_path_fn<Q>(base_str: &str, name: Q) -> std::io::Result<()>
+where
+    Q: AsRef<Path>,
+{
+    Ok(())
+}
