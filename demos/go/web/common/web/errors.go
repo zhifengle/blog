@@ -4,6 +4,10 @@ import (
 	"strconv"
 )
 
+var (
+	NotLogin = NewError(CODE_TOKEN_NOT_EXIST, "请先登录")
+)
+
 func NewError(code int, msg string) *CodeError {
 	return &CodeError{code, msg, nil}
 }

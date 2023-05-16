@@ -14,7 +14,7 @@ var UserService = &userService{}
 func (s *userService) Create(t *model.User) error {
 	user := s.GetByUsername(t.Username)
 	if user != nil {
-		return web.NewCodeError(web.ERROR_USER_NAME_USED)
+		return web.NewCodeError(web.CODE_USER_NAME_USED)
 	}
 	err := store.Db().Create(t).Error
 	return err

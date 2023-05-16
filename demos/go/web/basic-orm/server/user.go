@@ -11,7 +11,7 @@ import (
 func userListHandler(c *gin.Context) {
 	paging := &api.Paging{}
 	if err := c.ShouldBindQuery(paging); err != nil {
-		c.JSON(200, web.JsonErrorCode(web.ERROR_INVALID_PARAM))
+		c.JSON(200, web.JsonErrorCode(web.CODE_INVALID_PARAM))
 		return
 	}
 	result, err := services.UserService.GetList(paging)
