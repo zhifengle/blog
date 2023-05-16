@@ -25,3 +25,7 @@ func TestLimitRun(t *testing.T) {
 	limitRun(3, []string{"1", "2", "3", "4", "5", "6", "7", "8"}, fakeWorkFn)
 	fmt.Println("finished: ", time.Since(now))
 }
+
+func TestWorker(t *testing.T) {
+	waitWorker()
+}

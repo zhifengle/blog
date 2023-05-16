@@ -96,3 +96,20 @@ func limitRun[T any](num int, arr []T, iterFn func(item T)) {
 	}
 	wg.Wait()
 }
+
+// ref: https://gobyexample.com/channel-buffering
+
+func worker(done chan bool) {
+	fmt.Print("working...")
+	time.Sleep(time.Second)
+	fmt.Println("done")
+
+	done <- true
+}
+func waitWorker() {
+	done := make(chan bool, 1)
+	go worker(done)
+
+	// block until worker is done
+	<-done
+}
