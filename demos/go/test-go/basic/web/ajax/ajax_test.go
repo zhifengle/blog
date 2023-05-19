@@ -2,13 +2,15 @@ package ajax
 
 import (
 	"encoding/json"
+	"io"
 	"net/url"
+	"os"
 	"testing"
 )
 
 func TestReadNodeSiteConfig(t *testing.T) {
 	config := readNodeSiteConfig()
-	site := "bs.acgrip.com"
+	site := "bbs.acgrip.com"
 	siteConfig, ok := config[site]
 	if !ok {
 		return
@@ -50,4 +52,18 @@ func TestPostJson(t *testing.T) {
 		t.Error()
 	}
 	t.Log(res)
+}
+
+func TestDownloadFile(t *testing.T) {
+	targetUrl := "https://cachefly.cachefly.net/10mb.test"
+	res, _ := Request("GET", targetUrl, nil, make(map[string]string))
+	defer res.Body.Close()
+	file, _ := os.Create("file.test")
+	_, err := io.Copy(file, res.Body)
+	if err != nil {
+		t.Errorf("Error: %v", err)
+	}
+
+	// Close the file.
+	file.Close()
 }
