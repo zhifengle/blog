@@ -1,13 +1,8 @@
 [package]
-name = "hello_cargo"
+name = "lists"
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-
-[workspace]
-# 减少不必要的载入. 测试用的 crates ，才放入 members
-# members = [ "crates/*" ]
-members = [ "crates/lists" ]
