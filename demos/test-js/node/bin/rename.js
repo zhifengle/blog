@@ -31,9 +31,10 @@ async function* walk(dir, recursive) {
 
 function getNewName(name) {
   var newName = name;
-  // newName = newName.replace('_z_lib_org', '')
-  // newName = newName.replace('(z-lib.org)', '')
-  return newName;
+  newName = newName.replace('_z_lib_org', '')
+  newName = newName.replace('(z-lib.org)', '')
+  newName = newName.replace('(Z-Library)', '')
+  return newName.trim();
 }
 
 async function run(dir, recursive = false) {
@@ -73,5 +74,5 @@ async function execute(dir, recursive = false) {
   }
 }
 
-// run(targetPath);
-execute(targetPath);
+run(targetPath);
+// execute(targetPath);
