@@ -1,6 +1,9 @@
 package kv
 
-import "time"
+import (
+	"strconv"
+	"time"
+)
 
 type KvEngine interface {
 	set(key string, val interface{})
@@ -105,7 +108,13 @@ func (e *KvExpiration) isExpired(key string) bool {
 		return false
 	}
 	now := time.Now()
-	expirationTime := time.Unix(expiration.(int64), 0)
+	var num int64
+	if _, ok := expiration.(int64); ok {
+		num = expiration.(int64)
+	} else {
+		num, _ = strconv.ParseInt(expiration.(string), 10, 64)
+	}
+	expirationTime := time.Unix(num, 0)
 
 	return now.After(expirationTime)
 }
