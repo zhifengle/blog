@@ -1,62 +1,86 @@
 package request
 
 import (
-	"fmt"
+	"encoding/json"
+	"io"
+	"net/url"
+	"os"
 	"testing"
 )
 
+func TestReadNodeSiteConfig(t *testing.T) {
+	config := ReadNodeSiteConfig()
+	site := "share.dmhy.org"
+	siteConfig, ok := config[site]
+	if !ok {
+		return
+	}
+	t.Log(siteConfig.HttpsAgent)
+}
+
 func TestGet(t *testing.T) {
-	var err error
-	type args struct {
-		url     string
-		headers map[string]string
+	url := "https://httpbin.org/ip"
+	ReqSiteConfig["httpbin.org"] = SiteConfig{
+		HttpsAgent: "yes",
 	}
-	tests := []struct {
-		name string
-		args args
+	res, err := Get(url, nil)
+	if err != nil {
+		t.Error()
+	}
+	t.Log(res)
+}
+
+func TestGetWithProxy(t *testing.T) {
+	url := "https://httpbin.org/ip"
+	ReqSiteConfig["httpbin.org"] = SiteConfig{
+		HttpsAgent: "yes",
+	}
+	os.Setenv("http_proxy", "socks5://127.0.0.1:7890")
+	os.Setenv("https_proxy", "socks5://127.0.0.1:7890")
+	res, err := Get(url, nil)
+	if err != nil {
+		t.Error()
+	}
+	t.Log(res)
+}
+
+func TestPostForm(t *testing.T) {
+	targetUrl := "https://httpbin.org/post"
+	values := url.Values{}
+	values.Add("custname", "testpost")
+	res, err := PostForm(targetUrl, values, nil)
+	if err != nil {
+		t.Error()
+	}
+	t.Log(res)
+}
+
+func TestPostJson(t *testing.T) {
+	targetUrl := "https://httpbin.org/post"
+	post_body_struct := struct {
+		Custname string `json:"custname"`
 	}{
-		//{
-		//	name: "baidu",
-		//	args: args{
-		//		url:     "https://www.baidu.com/",
-		//		headers: nil,
-		//	},
-		//},
-		//{
-		//	name: "bing",
-		//	args: args{
-		//		url: "https://cn.bing.com/",
-		//		headers: map[string]string{
-		//			"Referer": "https://cn.bing.com",
-		//		},
-		//	},
-		//},
-		{
-			name: "52pojie",
-			args: args{
-				url: "https://www.52pojie.cn/",
-				headers: map[string]string{
-					"Referer": "https://www.52pojie.cn",
-				},
-			},
-		},
+		Custname: "testpost",
 	}
-	for _, tt := range tests {
-		//
-		t.Run(tt.name, func(t *testing.T) {
-			if tt.name == "52pojie" {
-				// 添加 go tool -v 参数可以打印
-				body, _ := GetByte(tt.args.url, tt.args.headers)
-				s, _ := GbkToUtf8(body)
-				fmt.Println(string(s))
-			} else {
-				_, err = GetByte(tt.args.url, tt.args.headers)
-			}
-			if err != nil {
-				t.Error()
-			}
-		})
-		// 打印错误
-		//t.Fatalf("tests[%d] - something wrong. expected=%q, got=%q", 1, "AAAAA", "BBB")
+	// convert struct to json bytes
+	values, _ := json.Marshal(post_body_struct)
+	res, err := PostJson(targetUrl, values, nil)
+	if err != nil {
+		t.Error()
 	}
+	t.Log(res)
+}
+
+func TestDownloadFile(t *testing.T) {
+	targetUrl := "https://cachefly.cachefly.net/10mb.test"
+	res, _ := Request("GET", targetUrl, nil, make(map[string]string))
+	defer res.Body.Close()
+	file, _ := os.Create("file.test")
+	_, err := io.Copy(file, res.Body)
+	if err != nil {
+		t.Errorf("Error: %v", err)
+	}
+
+	// Close the file.
+	file.Close()
 }
