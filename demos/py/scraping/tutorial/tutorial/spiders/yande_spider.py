@@ -9,6 +9,63 @@ from tutorial.utils import get_start_and_end, patch_url, sanitize_name
 OUTPUT_PATH = str(Path.home() / "Downloads/pic/yande")
 parent_save_path = Path('G:\\')
 
+def set_downloaded_ids(my_spider, folder_name = ''):
+    downloaded_ids = set()
+    save_path = my_spider.custom_settings['IMAGES_STORE']
+    cur_path = Path(save_path)
+    if folder_name:
+        cur_path = Path(save_path) / folder_name
+    else:
+        filelist_txt = cur_path / f'{cur_path.name}.txt'
+        if filelist_txt.exists():
+            with open(filelist_txt, 'r') as f:
+                downloaded_ids.update([int(line.strip()) for line in f.readlines()])
+    for path in cur_path.glob('**/*'):
+        if path.is_dir():
+            continue
+        search_result = re.search(r'(\d+)', path.name)
+        if search_result:
+            post_id = search_result.group(1)
+            downloaded_ids.add(int(post_id))
+    my_spider.downloaded_ids = downloaded_ids
+
+
+def get_post_item(post_obj, folder):
+    status = post_obj.get('status')
+    if status == 'deleted':
+        return
+    image_url = post_obj.get('file_url')
+    jpeg_url = post_obj.get('jpeg_url')
+    if jpeg_url is not None:
+        image_url = jpeg_url
+    if image_url is None:
+        return
+    image_name = unquote(PurePosixPath(urlparse(image_url).path).name)
+    image_name = f"{folder}/{sanitize_name(image_name)}"
+    post_id = post_obj['id'] if 'id' in post_obj else post_obj['post_id']
+    post_item = YandePostItem(
+        post_id=post_id,
+        tags=post_obj.get('tags', ''),
+        image_name=image_name,
+        image_url=image_url,
+    )
+    opt_keys = [
+        'creator_id',
+        'created_at',
+        'rating',
+        'score',
+        'source',
+        'has_children',
+        'parent_id',
+    ]
+    for key in opt_keys:
+        if key in post_obj:
+            post_item[key] = post_obj[key]
+    if 'width' in post_obj and 'height' in post_obj:
+        post_item['size'] = f"{post_obj['width']}x{post_obj['height']}"
+    if 'author' in post_obj:
+        post_item['creator'] = post_obj['author']
+    return post_item
 
 class YandePostItem(scrapy.Item):
     post_id = scrapy.Field()
@@ -34,12 +91,14 @@ class YandeRank(scrapy.Spider):
         'DOWNLOAD_DELAY': 0.5,
         'IMAGES_STORE': OUTPUT_PATH,
     }
+    downloaded_ids = set()
     name = "yande_rank"
 
     def start_requests(self):
         host = getattr(self, 'host', 'yande.re')
         year_range = get_start_and_end(getattr(self, 'year_range', '2007-2022'))
         month_range = get_start_and_end(getattr(self, 'month_range', '1-12'))
+        set_downloaded_ids(self)
 
         for year in range(year_range[0], year_range[1] + 1):
             for i in range(month_range[0], month_range[1] + 1):
@@ -55,6 +114,9 @@ class YandeRank(scrapy.Spider):
     def parse(self, response):
         post_urls = response.css("a.thumb::attr(href)").getall()
         for url in post_urls:
+            post_id = int(url.split('/')[-1])
+            if post_id in self.downloaded_ids:
+                continue
             yield response.follow(url, callback=self.parse_post, meta=response.meta)
 
     def parse_post(self, response):
@@ -260,7 +322,7 @@ class YandePostJson(scrapy.Spider):
         if len(posts_arr) == 0:
             return
         for post_obj in posts_arr:
-            item = self.get_post_item(post_obj)
+            item = get_post_item(post_obj, self.folder)
             if item is not None:
                 if item['parent_id'] is not None and response.url.find('parent') == -1:
                     url = patch_url(self.post_url, tags=f"parent:{item['parent_id']}")
@@ -287,13 +349,13 @@ class YandePostJson(scrapy.Spider):
         for post_obj in posts_arr:
             # skip downloaded
             if not post_obj['id'] in self.downloaded_ids:
-                yield self.get_post_item(post_obj)
+                yield get_post_item(post_obj, self.folder)
 
     def parse_item_by_id(self, response):
         posts_arr = response.json()
         if len(posts_arr) == 0:
             return
-        item = self.get_post_item(posts_arr[0])
+        item = get_post_item(posts_arr[0], self.folder)
         # item: id or post_id
         post_id = item['id'] if 'id' in item else item['post_id']
         target_id = ''
@@ -307,62 +369,8 @@ class YandePostJson(scrapy.Spider):
         elif item is not None:
             yield item
 
-    def get_post_item(self, post_obj):
-        status = post_obj.get('status')
-        if status == 'deleted':
-            return
-        image_url = post_obj.get('file_url')
-        jpeg_url = post_obj.get('jpeg_url')
-        if jpeg_url is not None:
-            image_url = jpeg_url
-        if image_url is None:
-            return
-        image_name = unquote(PurePosixPath(urlparse(image_url).path).name)
-        image_name = f"{self.folder}/{sanitize_name(image_name)}"
-        post_id = post_obj['id'] if 'id' in post_obj else post_obj['post_id']
-        post_item = YandePostItem(
-            post_id=post_id,
-            tags=post_obj.get('tags', ''),
-            image_name=image_name,
-            image_url=image_url,
-        )
-        opt_keys = [
-            'creator_id',
-            'created_at',
-            'rating',
-            'score',
-            'source',
-            'has_children',
-            'parent_id',
-        ]
-        for key in opt_keys:
-            if key in post_obj:
-                post_item[key] = post_obj[key]
-        if 'width' in post_obj and 'height' in post_obj:
-            post_item['size'] = f"{post_obj['width']}x{post_obj['height']}"
-        if 'author' in post_obj:
-            post_item['creator'] = post_obj['author']
-        return post_item
-
     def set_downloaded_ids(self, folder_name = ''):
-        downloaded_ids = set()
-        save_path = self.custom_settings['IMAGES_STORE']
-        cur_path = Path(save_path)
-        if folder_name:
-            cur_path = Path(save_path) / folder_name
-        else:
-            filelist_txt = cur_path / f'{cur_path.name}.txt'
-            if filelist_txt.exists():
-                with open(filelist_txt, 'r') as f:
-                    downloaded_ids.update([int(line.strip()) for line in f.readlines()])
-        for path in cur_path.glob('**/*'):
-            if path.is_dir():
-                continue
-            search_result = re.search(r'(\d+)', path.name)
-            if search_result:
-                post_id = search_result.group(1)
-                downloaded_ids.add(int(post_id))
-        self.downloaded_ids = downloaded_ids
+        set_downloaded_ids(self, folder_name)
 
 
 class KonachanPost(YandePostJson):
