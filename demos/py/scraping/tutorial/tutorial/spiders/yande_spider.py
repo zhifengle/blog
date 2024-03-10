@@ -432,3 +432,60 @@ class YandeTag(YandePostJson):
         if tags:
             url = patch_url(url, tags=tags)
         yield scrapy.Request(url, callback=self.parse)
+
+class YandeRankJson(scrapy.Spider):
+    custom_settings = {
+        'DOWNLOADER_MIDDLEWARES': {'tutorial.middlewares.ProxyMiddleware': 543},
+        'ITEM_PIPELINES': {'tutorial.pipelines.MyImagesPipeline': 1},
+        'DOWNLOAD_DELAY': 0.5,
+        'IMAGES_STORE': str(Path.home() / "Downloads/pic/yande"),
+    }
+    downloaded_ids = set()
+    name = "yande_rank_json"
+    host = 'yande.re'
+    skip_children = True
+
+    def start_requests(self):
+        host = getattr(self, 'host', 'yande.re')
+        year_range = get_start_and_end(getattr(self, 'year_range', '2007-2022'))
+        month_range = get_start_and_end(getattr(self, 'month_range', '1-12'))
+        set_downloaded_ids(self)
+
+        for year in range(year_range[0], year_range[1] + 1):
+            for i in range(month_range[0], month_range[1] + 1):
+                p = Path(rf"{OUTPUT_PATH}/{year}-{i:02d}")
+                if not p.exists():
+                    p.mkdir(parents=True)
+                yield scrapy.Request(
+                    f"https://{host}/post/popular_by_month.json?month={i}&year={year}",
+                    meta={'month': i, 'year': year},
+                    callback=self.parse,
+                )
+
+    def parse(self, response):
+        posts_arr = response.json()
+        if len(posts_arr) == 0:
+            return
+        folder = f"{response.meta['year']}-{response.meta['month']:02d}"
+        for post_obj in posts_arr:
+            item = get_post_item(post_obj, folder)
+            if item is not None:
+                if item['parent_id'] is not None and response.url.find('parent') == -1 and not self.skip_children:
+                    url = patch_url(f"https://{self.host}/post.json", tags=f"parent:{item['parent_id']}")
+                    yield scrapy.Request(url, callback=self.parse_parent_list, meta={'folder': folder})
+                elif item['post_id'] in self.downloaded_ids:
+                    continue
+                else:
+                    yield item
+        if 'limit' not in response.url:
+            return
+
+    def parse_parent_list(self, response):
+        posts_arr = response.json()
+        if len(posts_arr) == 0:
+            return
+        folder = response.meta['folder']
+        for post_obj in posts_arr:
+            # skip downloaded
+            if not post_obj['id'] in self.downloaded_ids:
+                yield get_post_item(post_obj, folder)
