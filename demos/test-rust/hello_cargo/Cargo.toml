@@ -10,4 +10,4 @@ edition = "2021"
 [workspace]
 # 减少不必要的载入. 测试用的 crates ，才放入 members
 # members = [ "crates/*" ]
-members = [ "crates/lists" ]
+members = [ "crates/async-demo" ]
