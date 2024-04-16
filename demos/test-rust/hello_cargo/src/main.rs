@@ -14,7 +14,9 @@ mod stdlib;
 // 📌 stdlib 一些标准库的用法
 // 部分来自 https://rust-lang-nursery.github.io/rust-cookbook/about.html
 
-// misc 随便放的
+// https://programming-idioms.org/
+
+// misc 随便放的; 有的依赖非标准库
 fn main() {
     // cargo run 11 poem.txt
     // minigrep::mingrep_main();
