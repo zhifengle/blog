@@ -4,7 +4,6 @@ import { httpAgent, httpsAgent } from './agent';
 import { request } from './request';
 import { getUserSiteConfig } from './site-config';
 import { execSync } from 'child_process';
-import { FirefoxCookies } from './cookies';
 
 export type IFetchOpts = {
   body?: any;
@@ -25,26 +24,6 @@ export function initDefaultOption(configName?: string) {
         cookie = execSync(
           `C:\\apps\\bin\\get-site-cookies.cmd ${key}`
         ).toString();
-      } catch (error) {}
-    }
-    if (cookie) {
-      config.headers = {
-        ...config.headers,
-        cookie,
-      };
-    }
-  }
-  setOption(option);
-}
-
-export async function initDefaultOptionFirefox(cookiePath: string) {
-  const fx = new FirefoxCookies(cookiePath);
-  const option = getUserSiteConfig();
-  for (const [key, config] of Object.entries(option)) {
-    let cookie = config?.headers?.cookie as string;
-    if (!cookie) {
-      try {
-        cookie = await fx.getSiteCookie(key);
       } catch (error) {}
     }
     if (cookie) {
