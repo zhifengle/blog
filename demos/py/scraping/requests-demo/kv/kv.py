@@ -1,4 +1,5 @@
 import time
+from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
 class KvEngine:
@@ -20,20 +21,21 @@ class KvExpiration:
         self.prefix = prefix
         self.suffix = suffix
 
-    def set(self, key: str, val: Any, duration: int) -> None:
+    def set(self, key: str, val: Any, duration: int = 0) -> None:
         self.engine.set(self.gen_key(key), val)
         if duration > 0:
-            self.engine.set(self.gen_expiration_key(key), int(time.time()) + duration)
+            expiration_time = (datetime.now() + timedelta(seconds=duration)).isoformat()
+            self.engine.set(self.gen_expiration_key(key), expiration_time)
 
     def set_next_day(self, key: str, val: Any) -> None:
-        now = int(time.time())
-        next_day = now + 86400  # 1 day in seconds
-        self.set(key, val, next_day - now)
+        now = datetime.now()
+        next_day = now + timedelta(days=1)
+        self.set(key, val, (next_day - now).total_seconds())
 
     def set_expiration_days(self, key: str, val: Any, days: int) -> None:
-        now = int(time.time())
-        next_day = now + days * 86400  # days to seconds
-        self.set(key, val, next_day - now)
+        now = datetime.now()
+        expiration_time = now + timedelta(days=days)
+        self.set(key, val, (expiration_time - now).total_seconds())
 
     def get(self, key: str) -> Optional[Any]:
         if self.is_expired(key):
@@ -66,12 +68,13 @@ class KvExpiration:
         return False
 
     def is_expired(self, key: str) -> bool:
-        expiration = self.engine.get(self.gen_expiration_key(key))
-        if expiration is None:
+        expiration_str = self.engine.get(self.gen_expiration_key(key))
+        if expiration_str is None:
             return False
-        now = int(time.time())
-        expiration_time = int(expiration) if isinstance(expiration, int) else int(expiration)
+        expiration_time = datetime.fromisoformat(expiration_str)
+        now = datetime.now()
         return now > expiration_time
     
     def save(self) -> None:
-        self.engine.save()
+        if hasattr(self.engine, 'save'):
+            self.engine.save()

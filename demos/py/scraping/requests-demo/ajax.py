@@ -1,11 +1,26 @@
 import json
 from pathlib import Path
+from urllib.parse import urlparse, urlunparse
 import requests
 
 default_headers = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36 Edg/110.0.1587.56'
 }
 
+def change_url_host(original_url, new_host):
+    parsed_url = urlparse(original_url)
+    new_url = urlunparse(parsed_url._replace(netloc=new_host))
+    
+    return new_url
+
+def gen_url(old_url, new_path):
+    # Parse the old URL
+    parsed_url = urlparse(old_url)
+    
+    # Build a new URL with the same components but with the new path
+    new_url = urlunparse((parsed_url.scheme, parsed_url.netloc, new_path, '', '', ''))
+    
+    return new_url
 
 def get_node_site_config():
     file = 'node-site-config.json'
