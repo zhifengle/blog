@@ -1,4 +1,5 @@
 import json
+import os
 from pathlib import Path
 from urllib.parse import urlparse, urlunparse
 import requests
@@ -49,6 +50,9 @@ def gen_session_by_url(url):
     session.headers.update(headers)
     if config.get('httpsAgent', False):
         proxy_url = 'http://127.0.0.1:10809'
+        all_proxy = os.getenv('ALL_PROXY')
+        if all_proxy:
+            proxy_url = all_proxy
         session.proxies = {
             'http': proxy_url,
             'https': proxy_url,

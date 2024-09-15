@@ -17,7 +17,7 @@ class CustomFormatter(logging.Formatter):
         return log_message
 
 
-def get_logger(name):
+def get_logger(name, log_dir=None):
     # logging.basicConfig(level=logging.DEBUG, filemode='a')
     # Create logger
     logger = logging.getLogger(name)
@@ -25,7 +25,10 @@ def get_logger(name):
     formatter = CustomFormatter()
 
     # logger.propagate = False
-    log_dir = Path.home() / 'Documents/test/logs'
+    if log_dir is None:
+        log_dir = Path.home() / 'Documents/test/logs'
+    elif not isinstance(log_dir, Path):
+        log_dir = Path(log_dir)
     # check if the directory exists
     if not log_dir.exists():
         log_dir.mkdir(parents=True)
