@@ -27,15 +27,20 @@ class KvExpiration:
             expiration_time = (datetime.now() + timedelta(seconds=duration)).isoformat()
             self.engine.set(self.gen_expiration_key(key), expiration_time)
 
+    def set_with_expiration(self, key: str, val: Any, expiration_time: str) -> None:
+        self.engine.set(self.gen_key(key), val)
+        self.engine.set(self.gen_expiration_key(key), expiration_time)
+
     def set_next_day(self, key: str, val: Any) -> None:
         now = datetime.now()
         next_day = now + timedelta(days=1)
-        self.set(key, val, (next_day - now).total_seconds())
+        next_day_start = next_day.replace(hour=0, minute=0, second=0, microsecond=0)
+        self.set_with_expiration(key, val, next_day_start.isoformat())
 
     def set_expiration_days(self, key: str, val: Any, days: int) -> None:
         now = datetime.now()
         expiration_time = now + timedelta(days=days)
-        self.set(key, val, (expiration_time - now).total_seconds())
+        self.set_with_expiration(key, val, expiration_time.isoformat())
 
     def get(self, key: str) -> Optional[Any]:
         if self.is_expired(key):

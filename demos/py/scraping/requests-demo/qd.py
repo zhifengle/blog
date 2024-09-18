@@ -27,6 +27,9 @@ def qiandao(name, checkin_fn):
         logger.info(f"[{name}] has checked in today")
         return
     code = checkin_fn()
+    # 特殊code 返回
+    if code >= 200:
+        return
     if code == 0:
         logger.info(f"[{name}] success")
         storage.set_next_day(name, 1)
@@ -58,7 +61,7 @@ def qd_v2ex():
     pattern = r'/mission\/daily\/redeem\?once=(\d+)'
     match = re.search(pattern, res.text)
     if match:
-        checkin_url = 'https://v2ex.com' + match.group(1)
+        checkin_url = 'https://v2ex.com/mission/daily/redeem?once=' + match.group(1)
         session.get(checkin_url)
         return 0
     return 1
@@ -106,6 +109,7 @@ def qd_south_plus(task_id, home_url = 'https://www.south-plus.net'):
     url = f'{home_url}/plugin.php?H_name=tasks&action=ajax&actions=job&cid={task_id}'
     apply_url = f'{home_url}/plugin.php?H_name=tasks&action=ajax&actions=job2&cid={task_id}'
     session = gen_session_by_url(url)
+    name = f'south-plus{task_id}'
     res = session.get(url)
     if '登录' in res.text:
         return 1
@@ -116,9 +120,16 @@ def qd_south_plus(task_id, home_url = 'https://www.south-plus.net'):
         # sleep 5 seconds
         time.sleep(2)
         session.get(apply_url)
-        return 0
+        logger.info(f"{name} success")
+        if task_id == 14:
+            storage.set_expiration_days(name, 7)
+        elif task_id == 15:
+            storage.set_expiration_days(name, 1)
+        return 200
     elif '拒离上次申请' in res.text:
-        return 0
+        logger.info(f"{name} 已申请过")
+        storage.set_expiration_days(name, 1)
+        return 200
     else:
         logger.error(f"[south-plus] {task_id} unknown operation")
         return 1
