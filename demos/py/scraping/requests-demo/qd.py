@@ -17,9 +17,13 @@ logger = get_logger('qiandao')
 
 def qiandao(name, checkin_fn):
     err_key = name + '_err'
-    is_err = storage.get(err_key)
-    if is_err:
-        logger.error(f"[{name}] error: {is_err}")
+    err_res = storage.get(err_key)
+    if err_res:
+        if err_res == 1:
+            logger.error(f"[{name}] need login")
+            return
+        else:
+            logger.error(f"[{name}] unknown error {err_res}")
         return
     result = storage.get(name)
     if result:
@@ -127,7 +131,7 @@ def qd_south_plus(task_id, home_url = 'https://www.south-plus.net'):
             storage.set_expiration_days(name, 1, 1)
         return 200
     elif '拒离上次申请' in res.text:
-        logger.info(f"{name} 已申请过")
+        logger.info(f"{name} has applied")
         storage.set_expiration_days(name, 1, 1)
         return 200
     else:
@@ -173,14 +177,6 @@ qd_fn_dict = {
 if __name__ == '__main__':
     sites = storage.get('sites') or []
     for site in sites:
-        err_key = site + '_err'
-        err_res = storage.get(err_key)
-        if err_res:
-            if err_res == 1:
-                logger.error(f"[{site}] need login")
-            else:
-                logger.error(f"[{site}] unknown error")
-            continue
         checkin_fn = qd_fn_dict.get(site)
         if checkin_fn:
             qiandao(site, checkin_fn)
