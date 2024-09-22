@@ -21,11 +21,19 @@ class KvExpiration:
         self.prefix = prefix
         self.suffix = suffix
 
-    def set(self, key: str, val: Any, duration: int = 0) -> None:
+    def set(self, key: str, val: Any, duration: Any = None) -> None:
         self.engine.set(self.gen_key(key), val)
-        if duration > 0:
-            expiration_time = (datetime.now() + timedelta(seconds=duration)).isoformat()
-            self.engine.set(self.gen_expiration_key(key), expiration_time)
+        if duration:
+            expiration_time = datetime.now()
+            if isinstance(duration, int):
+                expiration_time += timedelta(seconds=duration)
+            elif isinstance(duration, dict):
+                expiration_time += timedelta(**duration)
+            elif isinstance(duration, timedelta):
+                expiration_time += duration
+            else:
+                raise ValueError(f"Unsupported duration type: {type(duration)}")
+            self.engine.set(self.gen_expiration_key(key), expiration_time.isoformat())
 
     def set_with_expiration(self, key: str, val: Any, expiration_time: str) -> None:
         self.engine.set(self.gen_key(key), val)

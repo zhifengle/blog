@@ -31,7 +31,7 @@ class TestKvExpiration(unittest.TestCase):
         self.assertIsNone(self.expiration.get('key3'))
 
     def test_flush_expired(self):
-        self.expiration.set('key4', 'value4', 1)
+        self.expiration.set('key4', 'value4', { 'seconds': 1 })
         self.expiration.set('key5', 'value5', 5)
         time.sleep(2)  # Wait for key4 to expire
         self.expiration.flush_expired()
