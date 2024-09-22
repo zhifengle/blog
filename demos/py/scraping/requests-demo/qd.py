@@ -122,13 +122,13 @@ def qd_south_plus(task_id, home_url = 'https://www.south-plus.net'):
         session.get(apply_url)
         logger.info(f"{name} success")
         if task_id == 14:
-            storage.set_expiration_days(name, 7)
+            storage.set_expiration_days(name, 1, 7)
         elif task_id == 15:
-            storage.set_expiration_days(name, 1)
+            storage.set_expiration_days(name, 1, 1)
         return 200
     elif '拒离上次申请' in res.text:
         logger.info(f"{name} 已申请过")
-        storage.set_expiration_days(name, 1)
+        storage.set_expiration_days(name, 1, 1)
         return 200
     else:
         logger.error(f"[south-plus] {task_id} unknown operation")
