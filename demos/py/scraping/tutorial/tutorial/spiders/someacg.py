@@ -2,6 +2,7 @@ from pathlib import Path
 import scrapy
 
 from tutorial.items import ImageItem
+from tutorial.utils import get_start_and_end
 
 class SomeAcg(scrapy.Spider):
     custom_settings = {
@@ -10,14 +11,15 @@ class SomeAcg(scrapy.Spider):
         'DOWNLOAD_DELAY': 0.5,
         'MEDIA_ALLOW_REDIRECTS': True,
         'IMAGES_STORE': str(Path.home() / 'Downloads/pic/someacg'),
+        'USER_AGENT': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:140.0) Gecko/20100101 Firefox/140.0',
         'IMAGES_EXPIRES': 0,
     }
     name = "someacg"
 
 
     def start_requests(self):
-        # 1-25
-        for i in range(2, 26):
+        page_range = get_start_and_end(getattr(self, 'page_range', '1-12'))
+        for i in range(page_range[0], page_range[1] + 1):
             url = f"https://www.someacg.top/api/list?page={i}"
             yield scrapy.Request(url, callback=self.parse)
 
