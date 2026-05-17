@@ -17,12 +17,12 @@ from .items import User
 
 
 class TutorialPipeline:
-    def process_item(self, item, spider):
+    def process_item(self, item):
         return item
 
 
 class BgmPipeline:
-    def process_item(self, item, spider):
+    def process_item(self, item):
         if isinstance(item, User):
             print('================= pipe ============')
             pass
@@ -73,8 +73,14 @@ class GetchuSqlitePipeline:
         'ジャンル': 'genre',
     }
 
-    def open_spider(self, spider):
-        database_name = spider.settings.get('SQLITE_DB_PATH')
+    @classmethod
+    def from_crawler(cls, crawler):
+        pipeline = cls()
+        pipeline.crawler = crawler
+        return pipeline
+
+    def open_spider(self):
+        database_name = self.crawler.settings.get('SQLITE_DB_PATH')
         self.conn = sqlite3.connect(database_name)
         self.cursor = self.conn.cursor()
         self.cursor.execute(
@@ -113,11 +119,11 @@ class GetchuSqlitePipeline:
             '''
         )
 
-    def close_spider(self, spider):
+    def close_spider(self):
         self.conn.commit()
         self.conn.close()
 
-    def process_item(self, item, spider):
+    def process_item(self, item):
         # check item in db by url
         res = self.cursor.execute(
             'SELECT id FROM products WHERE url = ?', (item['url'],)
@@ -170,8 +176,14 @@ class GetchuSqlitePipeline:
 
 
 class NyaaSqlitePipeline:
-    def open_spider(self, spider):
-        database_name = spider.settings.get('SQLITE_DB_PATH')
+    @classmethod
+    def from_crawler(cls, crawler):
+        pipeline = cls()
+        pipeline.crawler = crawler
+        return pipeline
+
+    def open_spider(self):
+        database_name = self.crawler.settings.get('SQLITE_DB_PATH')
         self.conn = sqlite3.connect(database_name)
         self.cursor = self.conn.cursor()
         self.cursor.execute(
@@ -192,11 +204,11 @@ class NyaaSqlitePipeline:
                 '''
         )
 
-    def close_spider(self, spider):
+    def close_spider(self):
         self.conn.commit()
         self.conn.close()
 
-    def process_item(self, item, spider):
+    def process_item(self, item):
         # check item in db by url
         res = self.cursor.execute(
             'SELECT id FROM nyaa WHERE url = ?', (item['url'],)
@@ -231,8 +243,14 @@ class NyaaSqlitePipeline:
 
 
 class YandePostSqlitePipeline:
-    def open_spider(self, spider):
-        database_name = spider.settings.get('SQLITE_DB_PATH')
+    @classmethod
+    def from_crawler(cls, crawler):
+        pipeline = cls()
+        pipeline.crawler = crawler
+        return pipeline
+
+    def open_spider(self):
+        database_name = self.crawler.settings.get('SQLITE_DB_PATH')
         self.conn = sqlite3.connect(database_name)
         self.cursor = self.conn.cursor()
         self.cursor.execute(
@@ -257,11 +275,11 @@ class YandePostSqlitePipeline:
         )
         self.counter = 0
 
-    def close_spider(self, spider):
+    def close_spider(self):
         self.conn.commit()
         self.conn.close()
 
-    def process_item(self, item, spider):
+    def process_item(self, item):
         # check item in db by url
         rowid = self.cursor.execute(
             'SELECT id FROM yande_post WHERE post_id = ?', (item['post_id'],)

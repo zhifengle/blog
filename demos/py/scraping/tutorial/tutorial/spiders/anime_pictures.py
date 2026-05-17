@@ -56,7 +56,7 @@ class AnimePicturesHtml(scrapy.Spider):
     api_url = "https://anime-pictures.net/api/v3"
     downloaded_ids = []
 
-    def start_requests(self):
+    async def start(self):
         search_tag = getattr(self, 'search_tag', '')
         query = getattr(self, 'query', None)
         if search_tag == '':
@@ -130,7 +130,7 @@ class AnimePicturesTopHtml(scrapy.Spider):
     downloaded_ids = []
     folder_name = 'day'
 
-    def start_requests(self):
+    async def start(self):
         type = getattr(self, 'type', 'day')
         self.folder_name = type
         site_config = get_config_by_url('https://anime-pictures.net/')
@@ -196,7 +196,7 @@ class AnimePictures(scrapy.Spider):
     erotics = 0
     folder_name = ''
 
-    def start_requests(self):
+    async def start(self):
         search_tag = getattr(self, 'search_tag', '')
         if search_tag == '' and self.folder_name not in ['month', 'month_erotic']:
             self.logger.error("No search tag provided")
@@ -320,7 +320,7 @@ class AnimePicturesTop(AnimePictures):
     erotics = 0
     folder_name = 'day'
 
-    def start_requests(self):
+    async def start(self):
         type = getattr(self, 'type', 'day')
         self.folder_name = type
         if int(self.erotics) == 1:
@@ -356,7 +356,7 @@ class AnimePicturesStars(AnimePictures):
     name = "anime_pictures_stars"
     folder_name = 'stars'
 
-    def start_requests(self):
+    async def start(self):
         post_ids = getattr(self, 'post_ids', None)
         cookies = self.get_cookies()
         self.set_downloaded_ids(self.folder_name)

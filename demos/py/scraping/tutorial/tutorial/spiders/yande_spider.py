@@ -94,7 +94,7 @@ class YandeRank(scrapy.Spider):
     downloaded_ids = set()
     name = "yande_rank"
 
-    def start_requests(self):
+    async def start(self):
         host = getattr(self, 'host', 'yande.re')
         year_range = get_start_and_end(getattr(self, 'year_range', '2007-2022'))
         month_range = get_start_and_end(getattr(self, 'month_range', '1-12'))
@@ -160,7 +160,7 @@ class YandePost(scrapy.Spider):
     name = "yande_post"
     folder = 'yande.re'
 
-    def start_requests(self):
+    async def start(self):
         host = getattr(self, 'host', 'yande.re')
         tags = getattr(self, 'tags', '')
         url = getattr(self, 'url', '')
@@ -300,7 +300,7 @@ class YandePostJson(scrapy.Spider):
     post_url = 'https://yande.re/post.json'
     skip_txt_list = False
 
-    def start_requests(self):
+    async def start(self):
         if self.skip_txt_list:
             self.set_downloaded_ids(self.folder)
         else:
@@ -392,7 +392,7 @@ class YandePostStar(YandePostJson):
     name = "yande_star"
     folder = 'stars'
 
-    def start_requests(self):
+    async def start(self):
         self.set_downloaded_ids()
         ids = getattr(self, 'ids', None)
         if not ids:
@@ -421,7 +421,7 @@ class KonachanPostStar(YandePostStar):
 class YandeTag(YandePostJson):
     name = "yande_tag"
 
-    def start_requests(self):
+    async def start(self):
         tags = getattr(self, 'tags', '')
         if not tags:
             self.logger.error('tags is required')
@@ -445,7 +445,7 @@ class YandeRankJson(scrapy.Spider):
     host = 'yande.re'
     skip_children = True
 
-    def start_requests(self):
+    async def start(self):
         host = getattr(self, 'host', 'yande.re')
         year_range = get_start_and_end(getattr(self, 'year_range', '2007-2022'))
         month_range = get_start_and_end(getattr(self, 'month_range', '1-12'))

@@ -51,7 +51,7 @@ class GetchuProduct(scrapy.Spider):
     }
     name = "getchu_product"
 
-    def start_requests(self):
+    async def start(self):
         genre = getattr(self, 'genre', 'pc_soft')
         year_range = get_start_and_end(getattr(self, 'year_range', '2010-2021'))
         month_range = get_start_and_end(getattr(self, 'month_range', '1-12'))

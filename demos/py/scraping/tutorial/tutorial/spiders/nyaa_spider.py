@@ -31,7 +31,7 @@ class Nyaa(scrapy.Spider):
     }
     name = "nyaa"
 
-    def start_requests(self):
+    async def start(self):
         search_tag = getattr(self, 'q', None)
         category = getattr(self, 'c', '0_0')
         host = getattr(self, 'host', 'nyaa.si')

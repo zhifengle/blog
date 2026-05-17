@@ -20,17 +20,18 @@ class TutorialSpiderMiddleware:
     def from_crawler(cls, crawler):
         # This method is used by Scrapy to create your spiders.
         s = cls()
+        s.crawler = crawler
         crawler.signals.connect(s.spider_opened, signal=signals.spider_opened)
         return s
 
-    def process_spider_input(self, response, spider):
+    def process_spider_input(self, response):
         # Called for each response that goes through the spider
         # middleware and into the spider.
 
         # Should return None or raise an exception.
         return None
 
-    def process_spider_output(self, response, result, spider):
+    def process_spider_output(self, response, result):
         # Called with the results returned from the Spider, after
         # it has processed the response.
 
@@ -38,20 +39,24 @@ class TutorialSpiderMiddleware:
         for i in result:
             yield i
 
-    def process_spider_exception(self, response, exception, spider):
+    async def process_spider_output_async(self, response, result):
+        async for i in result:
+            yield i
+
+    def process_spider_exception(self, response, exception):
         # Called when a spider or process_spider_input() method
         # (from other spider middleware) raises an exception.
 
         # Should return either None or an iterable of Request or item objects.
         pass
 
-    def process_start_requests(self, start_requests, spider):
+    async def process_start(self, start):
         # Called with the start requests of the spider, and works
         # similarly to the process_spider_output() method, except
         # that it doesn’t have a response associated.
 
         # Must return only requests (not items).
-        for r in start_requests:
+        async for r in start:
             yield r
 
     def spider_opened(self, spider):
@@ -67,10 +72,11 @@ class TutorialDownloaderMiddleware:
     def from_crawler(cls, crawler):
         # This method is used by Scrapy to create your spiders.
         s = cls()
+        s.crawler = crawler
         crawler.signals.connect(s.spider_opened, signal=signals.spider_opened)
         return s
 
-    def process_request(self, request, spider):
+    def process_request(self, request):
         # Called for each request that goes through the downloader
         # middleware.
 
@@ -82,7 +88,7 @@ class TutorialDownloaderMiddleware:
         #   installed downloader middleware will be called
         return None
 
-    def process_response(self, request, response, spider):
+    def process_response(self, request, response):
         # Called with the response returned from the downloader.
 
         # Must either;
@@ -91,7 +97,7 @@ class TutorialDownloaderMiddleware:
         # - or raise IgnoreRequest
         return response
 
-    def process_exception(self, request, exception, spider):
+    def process_exception(self, request, exception):
         # Called when a download handler or a process_request()
         # (from other downloader middleware) raises an exception.
 
@@ -108,7 +114,14 @@ class ProxyMiddleware(object):
     proxy_url = None
     checked = False
     proxy = os.environ.get('https_proxy')
-    def process_request(self, request, spider):
+
+    @classmethod
+    def from_crawler(cls, crawler):
+        middleware = cls()
+        middleware.crawler = crawler
+        return middleware
+
+    def process_request(self, request):
         if self.proxy:
             # request.meta['proxy'] = proxy
             return
@@ -127,6 +140,9 @@ class ProxyMiddleware(object):
             request.meta['proxy'] = 'http://127.0.0.1:7891'
             self.proxy_url = 'http://127.0.0.1:7891'
         else:
-            spider.logger.warn('ProxyMiddleware: Proxy is not available')
+            crawler = getattr(self, 'crawler', None)
+            spider = getattr(crawler, 'spider', None)
+            if spider is not None:
+                spider.logger.warning('ProxyMiddleware: Proxy is not available')
         sock.close()
         self.checked = True
