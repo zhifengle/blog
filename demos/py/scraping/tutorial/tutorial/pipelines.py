@@ -14,6 +14,7 @@ from scrapy.pipelines.images import ImagesPipeline
 from scrapy import Request
 
 from .items import User
+from .utils import get_config_by_url
 
 
 class TutorialPipeline:
@@ -35,6 +36,34 @@ class MyImagesPipeline(ImagesPipeline):
 
     def file_path(self, request, response=None, info=None, *, item=None):
         return item['image_name']
+
+
+class AnimePicturesImagesPipeline(MyImagesPipeline):
+    def get_media_requests(self, item, info):
+        headers = {'Referer': item.get('referer')}
+        if not is_anime_pictures_request(item):
+            yield Request(item['image_url'], headers=headers)
+            return
+
+        site_config = get_config_by_url('https://anime-pictures.net/')
+        site_headers = site_config.get('headers')
+        if site_headers and site_headers.get('cookie'):
+            headers['Cookie'] = site_headers['cookie']
+            yield Request(
+                item['image_url'],
+                headers=headers,
+                meta={'dont_merge_cookies': True},
+            )
+            return
+        yield Request(item['image_url'], headers=headers)
+
+
+def is_anime_pictures_request(item):
+    hosts = {
+        urlparse(item['image_url']).netloc,
+        urlparse(item.get('referer') or '').netloc,
+    }
+    return any(host.endswith('anime-pictures.net') for host in hosts)
 
 
 class GetchuImagesPipeline(ImagesPipeline):

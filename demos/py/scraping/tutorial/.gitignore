@@ -10,3 +10,5 @@ __pycache__
 /build
 /logs
 node-site-config.json
+.claude
+.mcp.json

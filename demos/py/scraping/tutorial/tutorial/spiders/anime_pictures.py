@@ -1,6 +1,5 @@
 from pathlib import Path, PurePosixPath
-from random import random
-from urllib.parse import urlparse, quote, unquote
+from urllib.parse import urlparse, quote_plus, unquote
 import scrapy
 import os
 import re
@@ -43,7 +42,7 @@ def get_downloaded_ids(pic_path):
 class AnimePicturesHtml(scrapy.Spider):
     custom_settings = {
         'DOWNLOADER_MIDDLEWARES': {'tutorial.middlewares.ProxyMiddleware': 543},
-        'ITEM_PIPELINES': {'tutorial.pipelines.MyImagesPipeline': 1},
+        'ITEM_PIPELINES': {'tutorial.pipelines.AnimePicturesImagesPipeline': 1},
         'DOWNLOAD_DELAY': 0.5,
         'MEDIA_ALLOW_REDIRECTS': True,
         'IMAGES_STORE': IMAGES_STORE,
@@ -53,7 +52,7 @@ class AnimePicturesHtml(scrapy.Spider):
     start = 0
     end = 0
     page_size = 80
-    api_url = "https://anime-pictures.net/api/v3"
+    api_url = "https://api.anime-pictures.net/api/v3"
     downloaded_ids = []
 
     async def start(self):
@@ -104,10 +103,7 @@ class AnimePicturesHtml(scrapy.Spider):
 
     def parse_img_post(self, response):
         search_tag = getattr(self, 'search_tag', '')
-        img_url = response.css("#big_preview_cont > a::attr(href)").get()
-        # randomize the image url to avoid 403
-        # if random() > 0.9:
-        #     img_url = response.css("#rating > a.download_icon::attr(href)").get()
+        img_url = response.xpath("//img[@id='big_preview']/parent::a/@href").get()
         img_name = PurePosixPath(urlparse(img_url).path).name
         img_name = sanitize_name(unquote(img_name))
         if search_tag:
@@ -119,14 +115,14 @@ class AnimePicturesHtml(scrapy.Spider):
 class AnimePicturesTopHtml(scrapy.Spider):
     custom_settings = {
         'DOWNLOADER_MIDDLEWARES': {'tutorial.middlewares.ProxyMiddleware': 543},
-        'ITEM_PIPELINES': {'tutorial.pipelines.MyImagesPipeline': 1},
+        'ITEM_PIPELINES': {'tutorial.pipelines.AnimePicturesImagesPipeline': 1},
         'DOWNLOAD_DELAY': 0.5,
         'MEDIA_ALLOW_REDIRECTS': True,
         'IMAGES_STORE': str(Path.home() / 'Downloads/pic/anime_pictures_top'),
         'IMAGES_EXPIRES': 0,
     }
     name = "anime_pictures_top_html"
-    api_url = "https://anime-pictures.net/api/v3"
+    api_url = "https://api.anime-pictures.net/api/v3"
     downloaded_ids = []
     folder_name = 'day'
 
@@ -168,7 +164,7 @@ class AnimePicturesTopHtml(scrapy.Spider):
 
     def parse_img_post(self, response):
         t = self.folder_name
-        img_url = response.css("#rating > a.download_icon::attr(href)").get()
+        img_url = response.xpath("//img[@id='big_preview']/parent::a/@href").get()
         img_name = PurePosixPath(urlparse(img_url).path).name
         img_name = sanitize_name(unquote(img_name))
         img_name = f"{t}/{img_name}"
@@ -181,14 +177,16 @@ TAG_BLACKLIST = ['realistic', '3d']
 class AnimePictures(scrapy.Spider):
     custom_settings = {
         'DOWNLOADER_MIDDLEWARES': {'tutorial.middlewares.ProxyMiddleware': 543},
-        'ITEM_PIPELINES': {'tutorial.pipelines.MyImagesPipeline': 1},
+        'ITEM_PIPELINES': {'tutorial.pipelines.AnimePicturesImagesPipeline': 1},
         'CONCURRENT_REQUESTS_PER_DOMAIN': 1,
         'DOWNLOAD_DELAY': 2.5,
         'IMAGES_STORE': str(Path.home() / 'Downloads/pic/anime_pictures'),
         'IMAGES_EXPIRES': 0,
+        'MEDIA_ALLOW_REDIRECTS': True,
+        'USER_AGENT': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:140.0) Gecko/20100101 Firefox/140.0',
     }
     name = "anime_pictures"
-    api_url = "https://anime-pictures.net/api/v3"
+    api_url = "https://api.anime-pictures.net/api/v3"
     start = 0
     end = 0
     page_size = 40
@@ -247,27 +245,19 @@ class AnimePictures(scrapy.Spider):
                     callback=self.parse,
                 )
 
-    def parse_items(self, response):
-        data = response.json()
-        if data['success'] == False:
-            return
-        if data['top']:
-            for post in data['top']:
-                if int(post['id']) in self.downloaded_ids:
-                    continue
-                yield self.get_image_item(post)
-
     def parse_post_json(self, response):
         res = response.json()
         tags = res['tags']
         # if any of tag_obj.tag.tag in black list return
         if any(tag_obj['tag']['tag'] in TAG_BLACKLIST for tag_obj in tags):
             return
-        yield self.get_image_item(res['post'], res["file_url"])
+        post = res['post']
+        image_url = self._construct_image_url(post, tags)
+        yield self.get_image_item(post, image_url)
         if res['tied']:
             for tied_post in res['tied']:
                 yield scrapy.Request(
-                    f"https://anime-pictures.net/api/v3/posts/{tied_post['id']}",
+                    f"{self.api_url}/posts/{tied_post['id']}",
                     headers={'Content-Type': 'application/json'},
                     callback=self.parse_post_json,
                 )
@@ -276,6 +266,11 @@ class AnimePictures(scrapy.Spider):
         site_config = get_config_by_url('https://anime-pictures.net/')
         headers = site_config.get('headers')
         return get_cookies_dict(headers.get('cookie'))
+
+    def get_cookie_header(self):
+        site_config = get_config_by_url('https://anime-pictures.net/')
+        headers = site_config.get('headers')
+        return headers.get('cookie', '')
 
     def set_downloaded_ids(self, folder_name):
         downloaded_ids = set()
@@ -299,18 +294,17 @@ class AnimePictures(scrapy.Spider):
                 downloaded_ids.add(int(post_id))
         self.downloaded_ids = downloaded_ids
 
-    def get_image_item(self, post_dict, image_name):
-        post_md5 = post_dict['md5']
-        post_ext = post_dict['ext']
-        md5_name = f'{post_md5}{post_ext}'
-        if not image_name:
-            image_name = f'{post_dict["id"]}-{md5_name}'
-        else:
-            image_name = sanitize_name(unquote(image_name))
+    def _construct_image_url(self, post, tags=None):
+        md5 = post['md5']
+        ext = post['ext']
+        return f"https://oimages.anime-pictures.net/{md5[:3]}/{md5}{ext}"
+
+    def get_image_item(self, post_dict, image_url):
+        ext = post_dict['ext']
+        image_name = f'{post_dict["id"]}-{post_dict["md5"]}{ext}'
         if self.folder_name:
             image_name = f'{self.folder_name}/{image_name}'
-        image_url = f'https://images.anime-pictures.net/{post_md5[:3]}/{md5_name}'
-        post_url = (f"https://anime-pictures.net/posts/{post_dict['id']}",)
+        post_url = f"https://anime-pictures.net/posts/{post_dict['id']}"
         return ImageItem(image_name=image_name, image_url=image_url, referer=post_url)
 
 
@@ -330,8 +324,11 @@ class AnimePicturesTop(AnimePictures):
         url = f"{self.api_url}/top?length={type}&erotic={self.erotics}"
         yield scrapy.Request(
             url,
-            headers={'Content-Type': 'application/json'},
-            cookies=self.get_cookies(),
+            headers={
+                'Content-Type': 'application/json',
+                'Cookie': self.get_cookie_header(),
+            },
+            meta={'dont_merge_cookies': True},
             callback=self.parse,
         )
 
@@ -345,9 +342,12 @@ class AnimePicturesTop(AnimePictures):
                 if int(post['id']) in self.downloaded_ids:
                     continue
                 yield response.follow(
-                    # f"{self.api_url}/posts/{post['id']}?extra=similar_pictures&lang=en",
                     f"{self.api_url}/posts/{post['id']}",
-                    headers={'Content-Type': 'application/json'},
+                    headers={
+                        'Content-Type': 'application/json',
+                        'Cookie': self.get_cookie_header(),
+                    },
+                    meta={'dont_merge_cookies': True},
                     callback=self.parse_post_json,
                 )
 
@@ -358,7 +358,6 @@ class AnimePicturesStars(AnimePictures):
 
     async def start(self):
         post_ids = getattr(self, 'post_ids', None)
-        cookies = self.get_cookies()
         self.set_downloaded_ids(self.folder_name)
         if post_ids is None:
             self.logger.error("No post ids provided")
@@ -369,7 +368,10 @@ class AnimePicturesStars(AnimePictures):
                 continue
             yield scrapy.Request(
                 f"{self.api_url}/posts/{post_id}",
-                headers={'Content-Type': 'application/json'},
-                cookies=cookies,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Cookie': self.get_cookie_header(),
+                },
+                meta={'dont_merge_cookies': True},
                 callback=self.parse_post_json,
             )
